@@ -190,12 +190,14 @@ function gameOver({ title = 'GAME OVER', text, effect = 'tumble' }) {
     snail: '<span class="snail">🐌</span>',
     tumble: '<span class="dizzy">💫</span>',
     girls: '<span class="kiss k1">💋</span><span class="kiss k2">💋</span>',
+    crush: '<span class="broken">💥</span><span class="broken b2">💫</span><span class="broken b3">💥</span>',
+    cop: '<span class="siren">🚨</span><span class="siren s2">🚨</span><span class="cop">🚓</span><span class="cop c2">🚓</span>',
     purple: '<div class="gooblob"></div><span class="siren">🚨</span><span class="broken">🟣</span><span class="broken b3">🟣</span>',
     nutrient: '<span class="broken">💀</span><span class="broken b2">🥬</span><span class="broken b3">🍎</span>',
   }[effect] || '';
   const m = (effect === 'flies' || effect === 'nutrient') ? 'dead' : 'sad';
   overlay.className = 'show fx-' + effect;
-  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
+  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'crush' ? crushHTML() : effect === 'cop' ? handBall() : effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
   $('#retry').onclick = () => startScene(currentScene, answers.slice(0, -1));
   return new Promise(() => {}); // never continues: the scene stops here
 }
@@ -222,6 +224,8 @@ const CHEESE = { skin: '#f3d2b3', hair: '#15131b', style: 'bowl',  shirt: '#6f8f
 const FRIEND = { skin: '#f1cfae', hair: '#2b2323', style: 'short', shirt: '#e9a76a', pants: '#4a4a6a' };
 const GUY1   = { skin: '#f4d4b5', hair: '#232323', style: 'short', shirt: '#6bbf8e', pants: '#3f4a5a' };
 const GUY2   = { skin: '#efcaa8', hair: '#4a3426', style: 'short', shirt: '#d97b7b', pants: '#3f3f55' };
+const crushHTML = () => `<div class="go-char flat">${person({ ...GELI, mood: 'dead' })}</div><div class="cbell"><i class="bpl"></i><i class="bpl s"></i><b class="br"></b><i class="bpl s"></i><i class="bpl"></i></div>`;
+const handBall = () => '<div class="handball"><span>✋</span><i></i></div>';
 const GIRL2  = { skin: '#f1cfae', hair: '#6b2f4a', style: 'long',  shirt: '#7fd1c7', pants: '#4b4468', blush: true };
 const girlsTrio = () => `<div class="go-trio"><div class="go-char side l">${person({ ...GIRL1, mood: 'shy' })}</div><div class="go-char">${person({ ...GELI, mood: 'happy' })}</div><div class="go-char side r">${person({ ...GIRL2, mood: 'shy' })}</div></div>`;
 const GIRL1  = { skin: '#f6d7bd', hair: '#1d1820', style: 'long',  shirt: '#f2c35c', pants: '#4b4468', blush: true };
@@ -1011,13 +1015,125 @@ scenes.friends = async () => {
   await F('Sure, bro. Sure.');
   await N("Cheesecake's ears turn bright red...");
   await fadeOut();
+  goto('gym');
+};
+
+/* LEVEL 7: the gym (form-check balance game + mirror) */
+const GYMG = { ...GELI, shirt: '#ff8fb8', pants: '#2d2a45' };
+const GYMC = { ...CHEESE, shirt: '#5b6fb8' };
+const gymBG = () => {
+  let rack = '';
+  for (let i = 0; i < 6; i++) rack += `<rect x="${108 + i * 7}" y="${26 - (i % 2)}" width="5" height="2.6" rx=".5" fill="#cbb8f0"/>`;
+  return `${SVG_OPEN}<rect width="160" height="100" fill="#4b3a78"/><rect y="62" width="160" height="38" fill="#2f2552"/><rect y="60" width="160" height="2.5" fill="#ff6fa5"/>
+    <rect x="6" y="16" width="54" height="42" rx="2" fill="#bfe4ff" opacity=".55" stroke="#e3d6fa" stroke-width="1.6"/>
+    <path d="M14 54 L30 20 M30 54 L46 20" stroke="#fff" stroke-width="1.5" opacity=".35"/>
+    <text x="128" y="14" text-anchor="middle" font-size="6" fill="#ffd1e6" font-family="sans-serif" font-weight="bold">GYM · NO EXCUSES</text>
+    <rect x="104" y="28.6" width="48" height="2" fill="#8c75c9"/>${rack}<path d="M0 80 H160" stroke="#3d3170" stroke-width=".5"/></svg>`;
+};
+const bellHTML = '<div class="bell"><i class="bpl"></i><i class="bpl s"></i><b class="br"></b><i class="bpl s"></i><i class="bpl"></i></div>';
+
+// Keep the dumbbells level for 10 seconds. Returns 1 (success) or 0 (crushed).
+function formGame() {
+  if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
+  endReplay();
+  const t = token;
+  return new Promise((res) => {
+    dlg.className = 'hidden'; dlg.onclick = null;
+    const bell = $('.bell');
+    const pad = document.createElement('div'); pad.className = 'formpad';
+    pad.innerHTML = '<div class="fp-h">Keep the dumbbells level for 10 seconds! (← → keys work too)</div><div class="gauge"><i></i></div><div class="timer"><div></div></div><div class="fp-b"><button data-d="-1">↶ Rotate left</button><button data-d="1">Rotate right ↷</button></div>';
+    stage.appendChild(pad);
+    const mark = pad.querySelector('.gauge i'), bar = pad.querySelector('.timer div');
+    let tilt = (Math.random() < 0.5 ? -1 : 1) * 25, v = 0, done = false;
+    const t0 = Date.now();
+    const nudge = (d) => { tilt += d * 20; };
+    const key = (e) => { if (e.key === 'ArrowLeft') nudge(-1); if (e.key === 'ArrowRight') nudge(1); };
+    document.addEventListener('keydown', key);
+    pad.querySelectorAll('button').forEach((b) => { b.onclick = () => nudge(+b.dataset.d); });
+    const end = (win) => {
+      if (done) return; done = true;
+      clearInterval(iv); document.removeEventListener('keydown', key); pad.remove();
+      answers.push(win ? 1 : 0); res(win ? 1 : 0);
+    };
+    const iv = setInterval(() => {
+      if (t !== token) { clearInterval(iv); document.removeEventListener('keydown', key); return; }
+      const el = (Date.now() - t0) / 1000;
+      v = v * 0.96 + (Math.random() - 0.5) * (1.1 + el * 0.12) + Math.sign(tilt) * 0.12;
+      tilt += v;
+      bell.style.transform = `rotate(${tilt * 0.35}deg)`;
+      mark.style.left = (50 + Math.max(-100, Math.min(100, tilt)) / 2) + '%';
+      bar.style.width = Math.max(0, 100 - el * 10) + '%';
+      if (Math.abs(tilt) >= 100) end(false); else if (el >= 10) end(true);
+    }, 50);
+  });
+}
+
+scenes.gym = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 7 · Gym Time');
+  stage.innerHTML = gymBG();
+  addActor('geli', { ...GYMG, mood: 'smile' }, { x: 40, w: 9 });
+  addActor('cheese', { ...GYMC, mood: 'smile' }, { x: 62, w: 9 });
+  await wait(800);
+
+  await N('📍 The campus gym. Geli is about to try her very first dumbbell shoulder press.');
+  mood('geli', 'happy');
+  await G("Okay, watch me! I'm gonna lift these!");
+  actors.geli.el.insertAdjacentHTML('beforeend', bellHTML);
+  mood('geli', 'stress');
+  await N('Geli hoists the dumbbells overhead... and they start to WOBBLE!');
+  mood('cheese', 'shock');
+  await C("Wait wait wait, your form is off! Don't worry, I'll correct you!");
+
+  const ok = await formGame();
+  if (!ok) {
+    mood('geli', 'shock');
+    const b = $('.bell'); b.style.transition = 'transform .5s ease-in'; b.style.transform = 'translateY(8em)';
+    const inner = actors.geli.el.querySelector('.inner'); inner.style.animation = 'none'; inner.style.transform = 'scaleY(.5)';
+    await wait(1400);
+    await gameOver({ text: 'Geli got crushed by the weights.', effect: 'crush' });
+  }
+
+  $('.bell').remove();
+  mood('geli', 'happy'); mood('cheese', 'happy'); gain(3);
+  await N("Cheesecake steadies the bar: 'Elbows in, core tight... and PUSH!'");
+  await G('Whoa... I did it?! Best spotter ever!');
+
+  await N('A few sets later, Geli stops in front of the big mirror...');
+  addActor('ref', { ...GYMG, mood: 'happy' }, { x: 15, y: 44, w: 6 });
+  actors.ref.el.classList.add('refl');
+  pop('geli', '💪'); pop('ref', '✨');
+  await G("Ooh, look at that! Are those... shoulder muscles?! I'm getting JACKED!");
+  await N('Geli flexes in the mirror. Cheesecake is right beside her.');
+
+  const m = await choose('What does Cheesecake do?', ['Compliment her muscles 💪', 'Touch her muscle ✋', 'Touch her chest ✋']);
+  if (m === 2) {
+    mood('geli', 'shock'); mood('cheese', 'shock');
+    await G('...EXCUSE ME?!');
+    await gameOver({ text: 'You copped a feel, but you also got sent to the police for SA!', effect: 'cop' });
+  }
+  if (m === 0) {
+    mood('cheese', 'happy');
+    await C('Whoa... your arms are looking seriously strong!');
+  } else {
+    await C('Can I... feel your muscle?');
+    await G('Sure! Flex flex!');
+    await C('Wow. That is solid!');
+  }
+  mood('geli', 'shy'); pop('geli', '💗'); gain(3);
+  await G("Aww... stop it, you're making me blush!");
+  mood('cheese', 'smile');
+  await C('...Anyway, all this lifting made me hungry.');
+  mood('geli', 'happy');
+  await G('Perfect timing! I cooked something at my dorm. Come over!');
+  await fadeOut();
   goto('dorm');
 };
 
-/* LEVEL 7: dorm kitchen, interactive cooking + taste test */
+/* LEVEL 8: dorm kitchen, interactive cooking + taste test */
 scenes.dorm = async () => {
   hud.classList.remove('hidden');
-  setLevel('Level 7 · Dorm Kitchen');
+  setLevel('Level 8 · Dorm Kitchen');
   stage.innerHTML = dormBG();
   addActor('geli', { ...GELI, mood: 'happy' }, { x: 26, w: 8.5 });
   addActor('cheese', CHEESE, { x: 62, w: 8.5 });
@@ -1036,7 +1152,7 @@ scenes.dorm = async () => {
   ];
   await wait(900);
 
-  await N("📍 Later that night, Geli's dorm. Something purple is bubbling aggressively on the stove.");
+  await N("📍 After the gym, Geli's dorm. Something purple is bubbling aggressively on the stove.");
   mood('cheese', 'shock');
   await C('Geli... what IS that?!');
   mood('cheese', 'smile');
@@ -1055,7 +1171,7 @@ scenes.dorm = async () => {
       await wait(1300);
       await gameOver({ text: 'Uh oh, you triggered the fire alarm. Cheesecake is covered in purple goo.', effect: 'purple' });
     }
-    got.push(id); setLiq(r + 1); gain(2); mood('geli', 'happy'); mood('cheese', 'smile');
+    got.push(id); setLiq(r + 1); gain(1); mood('geli', 'happy'); mood('cheese', 'smile');
     await G(it.say);
   }
 
@@ -1081,7 +1197,7 @@ scenes.dorm = async () => {
   await wait(900);
   mood('cheese', 'happy');
   await C('Hmm... this is actually edible! Not bad!');
-  mood('geli', 'happy'); pop('geli', '💜'); gain(4);
+  mood('geli', 'happy'); pop('geli', '💜'); gain(3);
   await G('Yayyyy!');
   await fadeOut();
   goto('tbc');
@@ -1101,8 +1217,8 @@ scenes.tbc = async () => {
 };
 
 /* ---------- START ---------- */
-// Tip for testing: add #lab, #stairs, #call, #invite, #costco, #exam, #hall, #friends, #dorm or #tbc to the web address to jump straight to that scene.
-const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, exam: 65, hall: 69, friends: 73, dorm: 73, tbc: 85 };
+// Tip for testing: add #lab, #stairs, #call, #invite, #costco, #exam, #hall, #friends, #gym, #dorm or #tbc to the web address to jump straight to that scene.
+const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, exam: 65, hall: 69, friends: 73, gym: 73, dorm: 79, tbc: 86 };
 const hash = location.hash.slice(1);
 if (hash && scenes[hash] && hash !== 'title') {
   progress = startAt[hash] || 0;
