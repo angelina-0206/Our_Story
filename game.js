@@ -190,9 +190,11 @@ function gameOver({ title = 'GAME OVER', text, effect = 'tumble' }) {
     snail: '<span class="snail">🐌</span>',
     tumble: '<span class="dizzy">💫</span>',
     girls: '<span class="kiss k1">💋</span><span class="kiss k2">💋</span>',
+    purple: '<div class="gooblob"></div><span class="siren">🚨</span><span class="broken">🟣</span><span class="broken b3">🟣</span>',
+    nutrient: '<span class="broken">💀</span><span class="broken b2">🥬</span><span class="broken b3">🍎</span>',
   }[effect] || '';
-  const m = effect === 'flies' ? 'dead' : 'sad';
-  overlay.className = 'show ' + effect;
+  const m = (effect === 'flies' || effect === 'nutrient') ? 'dead' : 'sad';
+  overlay.className = 'show fx-' + effect;
   overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
   $('#retry').onclick = () => startScene(currentScene, answers.slice(0, -1));
   return new Promise(() => {}); // never continues: the scene stops here
@@ -256,6 +258,8 @@ function person(o) {
     stress: `<circle cx="41" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="59" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="41" cy="57" r="1" fill="${ink}"/><circle cx="59" cy="57" r="1" fill="${ink}"/><path d="M73 40 Q77 47 73 50 Q69 47 73 40Z" fill="#8fd3ff"/>`,
     sleep: `<path d="M37 56 Q41 61 45 56 M55 56 Q59 61 63 56" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
     shy:   `<path d="M37 57 Q41 53 45 57 M55 57 Q59 53 63 57" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    side:   `<circle cx="41" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="59" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="43.4" cy="57" r="1.8" fill="${ink}"/><circle cx="61.4" cy="57" r="1.8" fill="${ink}"/><path d="M36 49 L45 52 M64 49 L55 52" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`,
+    relief: `<path d="M37 56 Q41 61 45 56 M55 56 Q59 61 63 56" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M73 40 Q77 47 73 50 Q69 47 73 40Z" fill="#8fd3ff"/>`,
   }[m];
 
   const mouth = {
@@ -268,6 +272,8 @@ function person(o) {
     stress: `<path d="M42 69 Q46 64 50 69 T58 69" ${line}/>`,
     sleep: `<path d="M45 68 Q50 71 55 68" ${line}/>`,
     shy:   `<path d="M45 67 Q50 71 55 67" ${line}/>`,
+    side:   `<path d="M44 70 Q50 65 56 70" ${line}/>`,
+    relief: `<path d="M44 66 Q50 72 56 66" ${line}/>`,
   }[m];
 
   const sh = m === 'shy';
@@ -408,10 +414,27 @@ function home(tone, { laptop = true } = {}) {
     ${laptop ? '<div class="laptop"><i></i></div>' : '<div class="phone gphone"><div class="scr off"></div></div>'}
     <div class="bed"><i class="pillow"></i></div>
     <div class="phone cphone"><div class="scr feed"></div></div>`);
+  feed('.cphone');
+}
+function feed(sel) {
+  const el = $(sel + ' .scr'); if (!el) return;
+  const t = token, cols = ['#ffd1e6', '#c9b8ff', '#b8e6ff', '#ffe9a8', '#c8f2d4', '#ffc8a8'];
+  el.className = 'scr feed';
+  el.innerHTML = '<div class="reel">' + Array.from({ length: 16 }, () => `<div class="fc" style="height:${(1 + Math.random() * 2.2).toFixed(1)}em;background:${cols[Math.floor(Math.random() * cols.length)]}"></div>`).join('') + '</div>';
+  const reel = el.firstChild; let i = 0;
+  const go = () => {
+    if (t !== token || !reel.isConnected) return;
+    i = (i + 1) % (reel.children.length - 2);
+    reel.style.transition = i === 0 ? 'none' : 'transform .5s ease-in-out';
+    reel.style.transform = `translateY(${-reel.children[i].offsetTop}px)`;
+    setTimeout(go, 1200 + Math.random() * 1500);
+  };
+  setTimeout(go, 800);
 }
 const phoneScr = (sel, mode, html = '') => {
-  const el = $(sel + ' .scr'); el.className = 'scr ' + mode; el.innerHTML = html;
   $(sel).classList.toggle('ring', mode === 'ring');
+  if (mode === 'feed') return feed(sel);
+  const el = $(sel + ' .scr'); el.className = 'scr ' + mode; el.innerHTML = html;
 };
 
 const CLOCK_HTML = `<div id="clock"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff7ea" stroke="#6a4aa3" stroke-width="5"/>
@@ -468,19 +491,64 @@ function toss(e) {
   setTimeout(() => { t.remove(); add(); }, 1000);
 }
 // Click a product to put it in the cart. Returns the product's id.
-function shop(prompt, items) {
+function shop(prompt, items, cls = '') {
   if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
   endReplay();
   const t = token;
   return new Promise((res) => {
     dlg.className = 'hidden'; dlg.onclick = null;
-    const w = document.createElement('div'); w.className = 'shelf';
+    const w = document.createElement('div'); w.className = 'shelf ' + cls;
     w.innerHTML = `<div class="shelf-h">${prompt}</div><div class="shelf-g">${items.map((it) => `<button data-id="${it.id}"><span>${it.e}</span>${it.n}</button>`).join('')}</div>`;
     stage.appendChild(w);
     w.querySelectorAll('button').forEach((b) => {
       b.onclick = () => { if (t !== token) return; answers.push(b.dataset.id); w.remove(); res(b.dataset.id); };
     });
   });
+}
+
+/* ----- stage 3: exam, hallway, dorm kitchen ----- */
+const examBG = () => {
+  let rows = '';
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) {
+    if (c === 2 || c === 3) continue;
+    rows += `<rect x="${10 + c * 24}" y="${44 + r * 10}" width="18" height="5" rx=".8" fill="#8a6bbd"/><circle cx="${19 + c * 24}" cy="${41 + r * 10}" r="3" fill="#c9b8e8"/>`;
+  }
+  return `${SVG_OPEN}<rect width="160" height="100" fill="#d9cfee"/><rect y="62" width="160" height="38" fill="#b9a6dc"/>
+    <rect x="48" y="8" width="64" height="26" rx="1.5" fill="#f3ecff" stroke="#8c75c9" stroke-width="1"/>
+    <text x="80" y="18" text-anchor="middle" font-size="4.2" fill="#3b2a5e" font-family="sans-serif" font-weight="bold">CPEN 211 · FINAL EXAM</text>
+    <text x="80" y="26" text-anchor="middle" font-size="3" fill="#6a4aa3" font-family="sans-serif">Q4: make the LEDs light up on the FPGA board</text>
+    <circle cx="20" cy="18" r="8" fill="#fff7ea" stroke="#6a4aa3" stroke-width="1.2"/><path d="M20 18 V12 M20 18 L24 20" stroke="#3b2a5e" stroke-width="1"/>${rows}</svg>`;
+};
+const hallBG = () => {
+  let lockers = '';
+  for (let i = 0; i < 9; i++) lockers += `<rect x="${i * 18 + 1}" y="26" width="16" height="36" rx="1" fill="${i % 2 ? '#8e7bc9' : '#7d6bb8'}"/><rect x="${i * 18 + 4}" y="32" width="10" height="3" fill="#cbb8f0"/>`;
+  return `${SVG_OPEN}<rect width="160" height="100" fill="#e3d6fa"/>${lockers}
+    <rect x="58" y="14" width="44" height="48" rx="1" fill="#6a4aa3"/><text x="80" y="22" text-anchor="middle" font-size="3.2" fill="#fff" font-family="sans-serif" font-weight="bold">EXAM ROOM</text><rect x="64" y="26" width="32" height="36" fill="#4b3a78"/>
+    <rect y="62" width="160" height="38" fill="#cbb4e0"/><path d="M0 80 H160" stroke="#b79fd1" stroke-width=".4"/></svg>`;
+};
+const dormBG = () => `${SVG_OPEN}<rect width="160" height="100" fill="#f3d9ec"/>
+  <circle cx="80" cy="6" r="3" fill="#fff7ea" stroke="#6a4aa3" stroke-width=".6"/>
+  <rect x="14" y="14" width="26" height="22" rx="1.5" fill="#bfe4ff" stroke="#fff7ea" stroke-width="1.5"/><path d="M27 14 V36 M14 25 H40" stroke="#fff7ea" stroke-width=".8"/>
+  <rect x="112" y="30" width="40" height="2" fill="#8c75c9"/><text x="114" y="29" font-size="6">🫙🫙🫙</text>
+  <rect y="60" width="160" height="40" fill="#8a6bbd"/><rect y="58" width="160" height="4" fill="#e3d6fa"/><rect x="62" y="58" width="36" height="3" fill="#2d2142"/></svg>`;
+
+const POT_HTML = '<div class="pot"><i class="ph l"></i><i class="ph r"></i><div class="body"></div><div class="liq"></div><b class="pb pb1"></b><b class="pb pb2"></b><b class="pb pb3"></b></div>';
+const FPGA = '<div class="fpga"><b>FPGA board</b><div class="leds">' + '<i></i>'.repeat(10) + '</div></div>';
+function squig(id, on = true) {
+  const el = actors[id].el, old = el.querySelector('.squig');
+  if (old) old.remove();
+  if (on) el.insertAdjacentHTML('beforeend', '<svg class="squig" viewBox="0 0 100 40"><path d="M8 32 q6 -26 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 M18 12 l8 -8 l8 10 l8 -10 l8 10 l8 -10 l8 10" fill="none" stroke="#3b2a5e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+}
+function mind(on = true) {
+  const old = stage.querySelector('.mind'); if (old) old.remove();
+  if (!on) return;
+  const bits = ['hug Cheesecake', 'just friends!!', 'what do I do', '💗', 'PANIC', 'hug him', 'what do I do', '💗💗', 'hug Cheesecake', 'just friends...'];
+  stage.insertAdjacentHTML('beforeend', `<div class="mind">${bits.map((b) => `<span style="left:${(Math.random() * 75).toFixed(0)}%;top:${(Math.random() * 70).toFixed(0)}%;animation-delay:-${(Math.random() * 2).toFixed(1)}s;font-size:${(0.9 + Math.random() * 0.7).toFixed(1)}em">${b}</span>`).join('')}<b>I WANNA HUG CHEESECAKE</b></div>`);
+}
+function dropIn(e) {
+  if (replaying) return;
+  const d = document.createElement('span'); d.className = 'drop'; d.textContent = e;
+  stage.appendChild(d); setTimeout(() => d.remove(), 1000);
 }
 
 /* ---------- 4. SCENES ---------- */
@@ -850,13 +918,179 @@ scenes.costco = async () => {
   await N('They both reach for the last sample at the same time...');
   await N('The cart was full. Their wallets were not. 💸');
   await fadeOut();
+  goto('exam');
+};
+
+/* LEVEL 6: CPEN 211 exam */
+scenes.exam = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 6 · CPEN 211 Exam');
+  stage.innerHTML = examBG();
+  addActor('geli', { ...GELI, mood: 'stress' }, { x: 27, y: 26, w: 9.5 });
+  addActor('cheese', { ...CHEESE, mood: 'stress' }, { x: 55, y: 26, w: 9.5 });
+  stage.insertAdjacentHTML('beforeend', '<div class="desk wide"></div><div class="laptop" style="left:28.2%"><i></i></div><div class="laptop" style="left:56.2%"><i></i></div>');
+  squig('geli'); squig('cheese');
+  await wait(900);
+
+  await N('📍 CPEN 211 final exam. Last question: write the code, then run it on the FPGA board. Geli and Cheesecake sit side by side.');
+  await N('The room is silent. Pencils scratch. Brains sizzle. 🔥');
+  await G("(Okay, okay, okay... just the last line of code. Don't panic, don't panic!)");
+  await C('(Why is nothing working?! Do I even know how to Verilog?!)');
+  await N('Geli types the very last line of code... and hits RUN.');
+  squig('geli', false); mood('geli', 'shock');
+  stage.insertAdjacentHTML('beforeend', FPGA);
+  for (const l of stage.querySelectorAll('.leds i')) { l.classList.add('on'); await wait(130); }
+  mood('geli', 'happy'); pop('geli', '✨'); gain(4);
+  await G('THE LEDS LIGHT UP!! It works!! YESSS!!');
+  stage.querySelector('.fpga').remove();
+  mood('geli', 'side');
+  await G('(...Wait. Will Cheesecake finish?)');
+  await G('(I really want him to get 100%. I wish he can do it...)');
+  await N('Geli peeks at Cheesecake, who is still scribbling away...');
+  await wait(1500);
+  await N('Shortly after...');
+  squig('cheese', false); mood('cheese', 'relief'); pop('cheese', '😮‍💨');
+  await C('Done. FINALLY.');
+  mood('geli', 'happy'); pop('geli', '💜');
+  await G('(He did it!! Yesss!)');
+  await fadeOut();
+  goto('hall');
+};
+
+/* LEVEL 6b: walking out of the exam */
+scenes.hall = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 6 · CPEN 211 Exam');
+  stage.innerHTML = hallBG();
+  addActor('geli', { ...GELI, mood: 'happy' }, { x: -16, w: 8.5 });
+  addActor('cheese', { ...CHEESE, mood: 'happy' }, { x: -30, w: 8.5 });
+  await wait(700);
+
+  await N('📍 Outside the exam room. Two very tired, very happy engineers.');
+  moveTo('geli', 36); moveTo('cheese', 50);
+  await wait(1800);
+  await C('Ahh... that exam was kinda challenging.');
+  await G('Right?! My brain is soup. But we did it!');
+  await C("I'm so glad we both passed!");
+  mood('geli', 'stress'); mind();
+  await G("(HOLY MOLY. I really wanna hug Cheesecake... but I can't, we're just friends! What do I do?! WHAT DO I DO?!)");
+  await G('(All I can think about is hugging Cheesecake!!)');
+  await C('Hey Geli, what are your plans for today?');
+  mind(false); mood('geli', 'shock');
+  await G('Uhh... I... am not so sure...');
+  mood('cheese', 'smile');
+  await C('Wanna go to the gym with me?');
+  mood('geli', 'happy'); pop('geli', '💜');
+  await G('Yes!! I mean... yeah, sure! Let me go change!');
+  moveTo('geli', -16); gain(4);
+  await N('Geli hurries off to change... alone... heart pounding. 💓');
+  await fadeOut();
+  goto('friends');
+};
+
+/* LEVEL 6c: Cheesecake and the friends */
+scenes.friends = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 6 · After the Exam');
+  stage.innerHTML = hallBG();
+  addActor('cheese', { ...CHEESE, mood: 'smile' }, { x: 28, w: 8.5 });
+  addActor('friend', FRIEND, { x: 50, w: 8.5 });
+  addActor('guy1', GUY1, { x: 66, w: 8.5 });
+  await wait(800);
+
+  await N('📍 Meanwhile, Cheesecake runs into some friends.');
+  await F('Bro! How was the exam?');
+  await C('Kinda challenging... but I think I passed. Geli and I both did.');
+  mood('cheese', 'shy');
+  await say('Guy 1', 'Wait. "Geli and I." And where is Geli right now?');
+  await C("She's changing. We're going to the gym.");
+  await F('Bro. After the exam. With the BBQ girl. To the gym.');
+  await say('Guy 1', 'Smooth. Very smooth.');
+  mood('cheese', 'shock');
+  await C("It's just a gym trip!! We're friends!!");
+  await F('Sure, bro. Sure.');
+  await N("Cheesecake's ears turn bright red...");
+  await fadeOut();
+  goto('dorm');
+};
+
+/* LEVEL 7: dorm kitchen, interactive cooking + taste test */
+scenes.dorm = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 7 · Dorm Kitchen');
+  stage.innerHTML = dormBG();
+  addActor('geli', { ...GELI, mood: 'happy' }, { x: 26, w: 8.5 });
+  addActor('cheese', CHEESE, { x: 62, w: 8.5 });
+  stage.insertAdjacentHTML('beforeend', POT_HTML);
+  const liq = ['#bde3ff', '#d2b5f5', '#b17bf0', '#8c4fd6', '#7a3fc4'];
+  const setLiq = (n) => { $('.pot .liq').style.backgroundColor = liq[n]; };
+  const items = [
+    { id: 'banana', e: '🍌', n: 'Banana' },
+    { id: 'cabbage', e: '🥬', n: 'Purple cabbage', ok: 1, say: "Purple cabbage! That's what makes it so purple!" },
+    { id: 'hotdog', e: '🌭', n: 'Hot dog' },
+    { id: 'apple', e: '🍎', n: 'Apple', ok: 1, say: 'Apple, for a little sweetness!' },
+    { id: 'choc', e: '🍫', n: 'Chocolate bar' },
+    { id: 'potato', e: '🥔', n: 'Potato', ok: 1, say: 'Potato, for the thickness!' },
+    { id: 'tomato', e: '🍅', n: 'Tomato' },
+    { id: 'spinach', e: '🌿', n: 'Spinach', ok: 1, say: 'And spinach... for the nutrients!' },
+  ];
+  await wait(900);
+
+  await N("📍 Later that night, Geli's dorm. Something purple is bubbling aggressively on the stove.");
+  mood('cheese', 'shock');
+  await C('Geli... what IS that?!');
+  mood('cheese', 'smile');
+  await G('My famous purple soup! Guess what I put in it. Add the right ingredients!');
+
+  const got = [];
+  for (let r = 0; r < 4; r++) {
+    const id = await shop(`What did Geli add? Pick ingredient ${r + 1} of 4!`, items.filter((i) => !got.includes(i.id)), 'low');
+    const it = items.find((i) => i.id === id);
+    dropIn(it.e);
+    if (!it.ok) {
+      mood('geli', 'shock'); mood('cheese', 'shock');
+      await wait(900);
+      $('.pot').classList.add('boom');
+      stage.insertAdjacentHTML('beforeend', '<div class="splat"></div>');
+      await wait(1300);
+      await gameOver({ text: 'Uh oh, you triggered the fire alarm. Cheesecake is covered in purple goo.', effect: 'purple' });
+    }
+    got.push(id); setLiq(r + 1); gain(2); mood('geli', 'happy'); mood('cheese', 'smile');
+    await G(it.say);
+  }
+
+  await N('The soup bubbles proudly. Geli stirs it with great confidence.');
+  await G('Perfect! Cheesecake, come sit. Time for the TASTE TEST!');
+  $('.pot').remove();
+  stage.insertAdjacentHTML('beforeend', '<div class="dtable"><span class="bowl" style="left:26%">🍲</span><span class="bowl" style="left:64%">🍲</span></div>');
+  await wait(500);
+  await N('Geli serves the purple concoction at the table.');
+  await G('Go on, give it a taste! Be honest.');
+
+  const t = await choose('What does Cheesecake do?', ['🥄 Eat it', '🤢 "Ew, this is disgusting."']);
+  if (t === 1) {
+    mood('cheese', 'ew');
+    await C('Ew... this is disgusting.');
+    mood('geli', 'shock');
+    await G("...Excuse me? Then you won't mind finishing the WHOLE pot.");
+    await gameOver({ text: "Geli forced the whole pot of purple goo down Cheesecake's throat. He died from too much nutrients.", effect: 'nutrient' });
+  }
+
+  await N('Cheesecake takes one very brave spoonful...');
+  mood('cheese', 'shock');
+  await wait(900);
+  mood('cheese', 'happy');
+  await C('Hmm... this is actually edible! Not bad!');
+  mood('geli', 'happy'); pop('geli', '💜'); gain(4);
+  await G('Yayyyy!');
+  await fadeOut();
   goto('tbc');
 };
 
 /* END OF WHAT WE'VE BUILT SO FAR */
 scenes.tbc = async () => {
   hud.classList.remove('hidden');
-  setLevel('Stage 2 complete');
+  setLevel('Stage 3 complete');
   stage.innerHTML = nightBG() + fireflies();
   await wait(600);
   overlay.className = 'show';
@@ -867,8 +1101,8 @@ scenes.tbc = async () => {
 };
 
 /* ---------- START ---------- */
-// Tip for testing: add #lab, #stairs, #call, #invite, #costco or #tbc to the web address to jump straight to that scene.
-const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, tbc: 65 };
+// Tip for testing: add #lab, #stairs, #call, #invite, #costco, #exam, #hall, #friends, #dorm or #tbc to the web address to jump straight to that scene.
+const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, exam: 65, hall: 69, friends: 73, dorm: 73, tbc: 85 };
 const hash = location.hash.slice(1);
 if (hash && scenes[hash] && hash !== 'title') {
   progress = startAt[hash] || 0;
