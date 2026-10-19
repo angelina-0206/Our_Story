@@ -26,13 +26,17 @@ const checkpoints = {};   // progress when each scene was first entered (used by
 const actors = {};
 const scenes = {};
 class Cancel extends Error {}
+let answers = [], replayQ = [], replaying = false;   // used by 'Try again' to skip straight to the choice
+const endReplay = () => { replaying = false; $('#game').classList.remove('replay'); };
 
 const wait = (ms) => {
   const t = token;
+  if (replaying) return Promise.resolve();
   return new Promise((res, rej) => setTimeout(() => (t === token ? res() : rej(new Cancel())), ms));
 };
 
 function say(who, text, narr = false) {
+  if (replaying) return Promise.resolve();
   const t = token;
   return new Promise((res) => {
     dlg.className = narr ? 'narr' : '';
@@ -66,6 +70,8 @@ document.addEventListener('keydown', (e) => {
 // Ask a multiple-choice question. Returns the number picked (0, 1, 2...), or -1 if time ran out.
 // Pass {code:'...'} to show a code question in a big card, {time:25} for a countdown.
 function choose(prompt, options, { time = 0, code = '' } = {}) {
+  if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
+  endReplay();
   const t = token;
   return new Promise((res) => {
     const quiz = !!code;
@@ -87,6 +93,7 @@ function choose(prompt, options, { time = 0, code = '' } = {}) {
       if (t !== token) return;
       clearTimeout(tm);
       if (quiz) { overlay.className = 'hidden'; overlay.innerHTML = ''; }
+      answers.push(i);
       res(i);
     };
     root.querySelectorAll('button').forEach((b) => {
@@ -105,6 +112,8 @@ function choose(prompt, options, { time = 0, code = '' } = {}) {
 
 // Let the player click on a character. Returns that character's id.
 function pick(prompt, ids) {
+  if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
+  endReplay();
   return new Promise((res) => {
     dlg.className = ''; dlg.onclick = null;
     dlg.innerHTML = `<div class="text">${prompt}</div>`;
@@ -113,6 +122,7 @@ function pick(prompt, ids) {
       el.classList.add('pickable');
       el.onclick = () => {
         ids.forEach((i) => { actors[i].el.classList.remove('pickable'); actors[i].el.onclick = null; });
+        answers.push(id);
         res(id);
       };
     });
@@ -127,6 +137,7 @@ function setProgress(v, instant) {
 }
 function gain(n) {
   setProgress(progress + n);
+  if (replaying) return;
   const h = $('#bar-heart');
   h.classList.remove('beat'); void h.offsetWidth; h.classList.add('beat');
   const f = document.createElement('div');
@@ -161,6 +172,7 @@ function moveTo(id, x, y, w) {
 }
 const walk = async (id, x, y, w) => { moveTo(id, x, y, w); await wait(1700); };
 function pop(id, emoji) {
+  if (replaying) return;
   const s = document.createElement('span');
   s.className = 'pop'; s.textContent = emoji;
   actors[id].el.appendChild(s);
@@ -177,18 +189,21 @@ function gameOver({ title = 'GAME OVER', text, effect = 'tumble' }) {
     reject: '<span class="broken">💔</span><span class="broken b2">💔</span><span class="broken b3">💔</span>',
     snail: '<span class="snail">🐌</span>',
     tumble: '<span class="dizzy">💫</span>',
+    girls: '<span class="kiss k1">💋</span><span class="kiss k2">💋</span>',
   }[effect] || '';
   const m = effect === 'flies' ? 'dead' : 'sad';
   overlay.className = 'show ' + effect;
-  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage"><div class="go-char">${person({ ...CHEESE, mood: m })}</div>${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
-  $('#retry').onclick = () => startScene(currentScene);
+  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
+  $('#retry').onclick = () => startScene(currentScene, answers.slice(0, -1));
   return new Promise(() => {}); // never continues: the scene stops here
 }
 
 /* scene switching */
 function goto(name) { checkpoints[name] = progress; startScene(name); }
-function startScene(name) {
+function startScene(name, replay) {
   token++;
+  answers = []; replayQ = replay ? [...replay] : []; replaying = !!replay;
+  $('#game').classList.toggle('replay', replaying);
   currentScene = name;
   overlay.className = 'hidden'; overlay.innerHTML = '';
   dlg.className = 'hidden'; dlg.onclick = null; dlg.innerHTML = '';
@@ -205,6 +220,8 @@ const CHEESE = { skin: '#f3d2b3', hair: '#15131b', style: 'bowl',  shirt: '#6f8f
 const FRIEND = { skin: '#f1cfae', hair: '#2b2323', style: 'short', shirt: '#e9a76a', pants: '#4a4a6a' };
 const GUY1   = { skin: '#f4d4b5', hair: '#232323', style: 'short', shirt: '#6bbf8e', pants: '#3f4a5a' };
 const GUY2   = { skin: '#efcaa8', hair: '#4a3426', style: 'short', shirt: '#d97b7b', pants: '#3f3f55' };
+const GIRL2  = { skin: '#f1cfae', hair: '#6b2f4a', style: 'long',  shirt: '#7fd1c7', pants: '#4b4468', blush: true };
+const girlsTrio = () => `<div class="go-trio"><div class="go-char side l">${person({ ...GIRL1, mood: 'shy' })}</div><div class="go-char">${person({ ...GELI, mood: 'happy' })}</div><div class="go-char side r">${person({ ...GIRL2, mood: 'shy' })}</div></div>`;
 const GIRL1  = { skin: '#f6d7bd', hair: '#1d1820', style: 'long',  shirt: '#f2c35c', pants: '#4b4468', blush: true };
 
 function person(o) {
@@ -236,6 +253,9 @@ function person(o) {
     ew:    `<path d="M36 55 L46 58 M64 55 L54 58" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>`,
     shock: `<circle cx="41" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="59" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="41" cy="56" r="1.6" fill="${ink}"/><circle cx="59" cy="56" r="1.6" fill="${ink}"/>`,
     dead:  `<path d="M37 52 L45 60 M45 52 L37 60 M55 52 L63 60 M63 52 L55 60" stroke="${ink}" stroke-width="2.2" stroke-linecap="round"/>`,
+    stress: `<circle cx="41" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="59" cy="56" r="4.2" fill="#fff" stroke="${ink}" stroke-width="1.4"/><circle cx="41" cy="57" r="1" fill="${ink}"/><circle cx="59" cy="57" r="1" fill="${ink}"/><path d="M73 40 Q77 47 73 50 Q69 47 73 40Z" fill="#8fd3ff"/>`,
+    sleep: `<path d="M37 56 Q41 61 45 56 M55 56 Q59 61 63 56" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    shy:   `<path d="M37 57 Q41 53 45 57 M55 57 Q59 53 63 57" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
   }[m];
 
   const mouth = {
@@ -245,9 +265,13 @@ function person(o) {
     ew:    `<path d="M42 69 Q46 64 50 69 T58 69" ${line}/>`,
     shock: `<ellipse cx="50" cy="70" rx="4" ry="5" fill="#7a3b3b"/>`,
     dead:  `<path d="M43 70 L57 70" ${line}/>`,
+    stress: `<path d="M42 69 Q46 64 50 69 T58 69" ${line}/>`,
+    sleep: `<path d="M45 68 Q50 71 55 68" ${line}/>`,
+    shy:   `<path d="M45 67 Q50 71 55 67" ${line}/>`,
   }[m];
 
-  const blush = o.blush ? '<circle cx="34" cy="64" r="4" fill="#ff9db8" opacity=".5"/><circle cx="66" cy="64" r="4" fill="#ff9db8" opacity=".5"/>' : '';
+  const sh = m === 'shy';
+  const blush = (o.blush || sh) ? `<circle cx="34" cy="64" r="${sh ? 5.5 : 4}" fill="#ff7fa6" opacity="${sh ? 0.85 : 0.5}"/><circle cx="66" cy="64" r="${sh ? 5.5 : 4}" fill="#ff7fa6" opacity="${sh ? 0.85 : 0.5}"/>` : '';
 
   // ears (for the bowl cut they are drawn on top of the hair, so the hair sits behind them)
   const ears = `<circle cx="26" cy="54" r="4.5" fill="${skin}"/><circle cx="74" cy="54" r="4.5" fill="${skin}"/>`;
@@ -359,6 +383,105 @@ const stairsBG = () => {
     <rect x="0" y="48" width="160" height="2" fill="#6a4aa3"/>
   </svg>`;
 };
+
+/* ----- stage 2: split-screen bedrooms, clock, phones, chat ----- */
+const homeBG = (side, tone) => {
+  const night = tone === 'night';
+  const wall = side === 'l' ? '#5b4590' : '#46508f', floor = side === 'l' ? '#3d2f6b' : '#2f3a6e';
+  let stars = '';
+  if (night) for (let i = 0; i < 14; i++) stars += `<circle cx="${(30 + Math.random() * 24).toFixed(0)}" cy="${(13 + Math.random() * 24).toFixed(0)}" r=".4" fill="#fff"/>`;
+  const orb = night ? '<circle cx="50" cy="20" r="4" fill="#fff4d6"/>' : '<circle cx="50" cy="20" r="5" fill="#fff1a8"/>';
+  const decor = side === 'l'
+    ? '<rect x="6" y="14" width="14" height="18" rx="1" fill="#f3ecff"/><path d="M9 28 L13 20 L16 25 L18 22" stroke="#ff6fa5" stroke-width="1" fill="none"/><text x="6" y="56" font-size="7">⛸️</text><text x="64" y="56" font-size="7">🎸</text>'
+    : '<rect x="8" y="14" width="14" height="18" rx="1" fill="#f3ecff"/><text x="10.5" y="26" font-size="8">🧀</text><text x="66" y="56" font-size="6">🪴</text>';
+  return `<div class="half ${side}"><svg class="bg" viewBox="0 0 80 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="100" fill="${wall}"/><rect y="68" width="80" height="32" fill="${floor}"/>
+    <rect x="28" y="10" width="28" height="30" rx="1.5" fill="${night ? '#1d1745' : '#bfe4ff'}" stroke="#e3d6fa" stroke-width="1.2"/>${stars}${orb}
+    <path d="M42 10 V40 M28 25 H56" stroke="#e3d6fa" stroke-width=".6" opacity=".6"/>${decor}</svg><div class="dawn"></div></div>`;
+};
+
+function home(tone, { laptop = true } = {}) {
+  stage.innerHTML = homeBG('l', tone) + homeBG('r', tone) + '<div class="split-line"></div>';
+  addActor('geli', { ...GELI, mood: laptop ? 'stress' : 'smile' }, { x: 17, y: 24, w: 10 });
+  addActor('cheese', { ...CHEESE, mood: 'smile' }, { x: 67, y: 22, w: 10 });
+  stage.insertAdjacentHTML('beforeend', `<div class="desk"></div>
+    ${laptop ? '<div class="laptop"><i></i></div>' : '<div class="phone gphone"><div class="scr off"></div></div>'}
+    <div class="bed"><i class="pillow"></i></div>
+    <div class="phone cphone"><div class="scr feed"></div></div>`);
+}
+const phoneScr = (sel, mode, html = '') => {
+  const el = $(sel + ' .scr'); el.className = 'scr ' + mode; el.innerHTML = html;
+  $(sel).classList.toggle('ring', mode === 'ring');
+};
+
+const CLOCK_HTML = `<div id="clock"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff7ea" stroke="#6a4aa3" stroke-width="5"/>
+  <g id="hh"><line x1="50" y1="50" x2="50" y2="27" stroke="#3b2a5e" stroke-width="5" stroke-linecap="round"/></g>
+  <g id="mh"><line x1="50" y1="50" x2="50" y2="14" stroke="#ff6fa5" stroke-width="3" stroke-linecap="round"/></g>
+  <circle cx="50" cy="50" r="3.5" fill="#3b2a5e"/></svg><div id="clock-time">11:00 PM</div></div>`;
+let clockT = 0;   // minutes since 11:00 PM
+const fmtT = (t) => { const m = (1380 + Math.round(t)) % 1440, h = Math.floor(m / 60); return `${((h + 11) % 12) + 1}:${String(m % 60).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+function setClock(t, ms = 0) {
+  const hh = $('#hh'), mh = $('#mh');
+  hh.style.transition = mh.style.transition = ms ? `transform ${ms}ms ease-in-out` : 'none';
+  hh.style.transform = `rotate(${(1380 + t) * 0.5}deg)`;
+  mh.style.transform = `rotate(${t * 6}deg)`;
+  $('#clock-time').textContent = fmtT(t);
+}
+async function clockTo(t, ms = 2400) {
+  const from = clockT, tk = token, t0 = Date.now(), lab = $('#clock-time');
+  setClock(t, ms);
+  const iv = setInterval(() => {
+    const p = Math.min(1, (Date.now() - t0) / ms);
+    lab.textContent = fmtT(from + (t - from) * p);
+    if (p >= 1 || tk !== token) clearInterval(iv);
+  }, 50);
+  document.querySelectorAll('.dawn').forEach((d) => { d.style.transition = `opacity ${ms}ms linear`; d.style.opacity = (t / 420) * 0.55; });
+  await wait(ms + 100); clockT = t;
+}
+
+const showChat = () => stage.insertAdjacentHTML('beforeend', '<div class="chat"><div class="chat-h">🧀 Cheesecake</div><div class="chat-b"></div></div>');
+function msg(side, text) {
+  const b = document.createElement('div'); b.className = 'bub ' + side; b.textContent = text;
+  $('.chat-b').appendChild(b); return b;
+}
+async function typing(side) { const b = msg(side, '• • •'); b.classList.add('typing'); await wait(1300); b.remove(); }
+
+const costcoBG = () => {
+  let shelves = '';
+  const cols = ['#ff9cc2', '#b79bea', '#ffd9b0', '#8fe3d2', '#fff7ea', '#f2c35c'];
+  [20, 33, 46].forEach((y, r) => {
+    shelves += `<rect x="0" y="${y + 11}" width="160" height="1.6" fill="#6a4aa3"/>`;
+    for (let i = 0; i < 20; i++) shelves += `<rect x="${i * 8 + 1}" y="${y + 11 - 7 - ((i * 7 + r * 3) % 3)}" width="6.5" height="${7 + ((i * 7 + r * 3) % 3)}" rx=".6" fill="${cols[(i + r * 2) % 6]}"/>`;
+  });
+  return `${SVG_OPEN}<rect width="160" height="100" fill="#d9c8ec"/><rect width="160" height="8" fill="#4b3a78"/>
+    <path d="M0 8 H160 M40 0 V8 M80 0 V8 M120 0 V8" stroke="#8c75c9" stroke-width=".6"/>
+    <rect x="52" y="9" width="56" height="9" rx="1.5" fill="#ff5f9f"/><text x="80" y="15.8" text-anchor="middle" font-size="5.5" fill="#fff" font-family="sans-serif" font-weight="bold">COSTCO · BULK ZONE</text>
+    ${shelves}<rect y="66" width="160" height="34" fill="#efe4fb"/><path d="M0 80 H160 M30 66 L10 100 M80 66 V100 M130 66 L150 100" stroke="#cbb8f0" stroke-width=".5"/></svg>`;
+};
+function toss(e) {
+  const add = () => { const g = $('.cargo'); if (g) g.textContent += e; };
+  const c = $('#cart');
+  if (!c) return;
+  if (replaying) return add();
+  const t = document.createElement('span'); t.className = 'toss'; t.textContent = e;
+  t.style.left = (parseFloat(c.style.left) + 3) + '%'; stage.appendChild(t);
+  setTimeout(() => { t.remove(); add(); }, 1000);
+}
+// Click a product to put it in the cart. Returns the product's id.
+function shop(prompt, items) {
+  if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
+  endReplay();
+  const t = token;
+  return new Promise((res) => {
+    dlg.className = 'hidden'; dlg.onclick = null;
+    const w = document.createElement('div'); w.className = 'shelf';
+    w.innerHTML = `<div class="shelf-h">${prompt}</div><div class="shelf-g">${items.map((it) => `<button data-id="${it.id}"><span>${it.e}</span>${it.n}</button>`).join('')}</div>`;
+    stage.appendChild(w);
+    w.querySelectorAll('button').forEach((b) => {
+      b.onclick = () => { if (t !== token) return; answers.push(b.dataset.id); w.remove(); res(b.dataset.id); };
+    });
+  });
+}
 
 /* ---------- 4. SCENES ---------- */
 
@@ -542,14 +665,190 @@ scenes.stairs = async () => {
   gain(8);
   mood('geli', 'happy');
   await G("Ooh, that's an interesting question!");
-  await G('Hmm... I skate in my free time. I play the ukulele. And I do watercolour paintings!');
+  await G('Hmm... I figure skate in my free time. I play the ukulele. And I do watercolour paintings!');
   mood('cheese', 'happy');
-  await C("(She skates?! Ukulele?! Watercolour?! Oh damn she's so cool.)");
+  await C("(She figure skates?! Ukulele?! Watercolour?! Oh damn she's so cool.)");
   await N('And the two kept walking, talking about everything and nothing...');
   moveTo('geli', 78, 36, 5); moveTo('cheese', 66, 36, 5);
   await wait(1200);
   actors.geli.el.style.opacity = 0; actors.cheese.el.style.opacity = 0;
   await wait(1500);
+  await fadeOut();
+  goto('call');
+};
+
+/* LEVEL 4: the midnight call (split screen) */
+scenes.call = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 4 · Midnight Study');
+  clockT = 0;
+  home('night');
+  stage.insertAdjacentHTML('beforeend', CLOCK_HTML);
+  setClock(0);
+  await wait(900);
+
+  await N('📍 11:00 PM. Two homes. One very overdue ELEC assignment.');
+  await N('Cheesecake is scrolling on his phone in bed, accomplishing absolutely nothing.');
+  pop('geli', '💦');
+  await G("(It's due soon and I'm SO stressed. I can't do this alone... Okay. Call someone.)");
+  stage.insertAdjacentHTML('beforeend', '<div class="callbox">📞 Calling Cheesecake<span class="dots"></span></div>');
+  await wait(1800);
+  phoneScr('.cphone', 'ring', '<b>📞</b><span>Geli 💜</span>');
+  pop('cheese', '❗'); mood('cheese', 'shock');
+  await wait(2200);
+  await C('(GELI is calling me?! Breathe. Pick up. PICK UP.)');
+  phoneScr('.cphone', 'talk', '<b>📞</b><span>on call</span>');
+  $('.callbox').innerHTML = '📞 Connected 💜';
+  mood('cheese', 'smile');
+  await C("Hello? ...Hey Geli. What's up?");
+  await G('Help me with this ELEC assignment! It is due soon and I am so stressed. I really wanna finish it before tomorrow... can you help??');
+  mood('cheese', 'happy');
+  await C('Yeah, for sure.');
+  await N('And so the all-nighter begins...');
+
+  async function circuitQ(intro, prompt, code, opts, right) {
+    mood('geli', 'smile');
+    await G(intro);
+    const a = await choose(prompt, opts, { time: 20, code });
+    if (a === right) {
+      mood('geli', 'happy'); mood('cheese', 'happy'); gain(4);
+      await G('Bravo! No way, you actually solved a question!');
+    } else {
+      await N('Thankfully, Geli is smart enough to solve it herself. 🧠');
+    }
+    mood('geli', 'stress'); mood('cheese', 'smile');
+  }
+
+  await clockTo(60);
+  await N('12:00 AM. Resistors. So many resistors.');
+  await circuitQ('Okay, warm-up. 20 seconds!', 'What current flows through the resistor?',
+    '(12V)--[ R = 4 ohm ]--+\n  |                   |\n  +-------------------+', ['3 A', '48 A', '8 A', '0.33 A'], 0);
+
+  await clockTo(180);
+  await N('2:00 AM. Cheesecake yawns. Geli does not notice.');
+  await circuitQ('Next one. Two resistors!', 'Total resistance of the series circuit?',
+    '(10V)--[ 6 ohm ]--[ 6 ohm ]--+\n  |                          |\n  +--------------------------+', ['3 Ω', '6 Ω', '12 Ω', '36 Ω'], 2);
+
+  await clockTo(300);
+  await N('4:00 AM. The coffee is gone. The assignment is not.');
+  await circuitQ('Last tough one, I promise. Parallel!', 'Equivalent resistance of the parallel pair?',
+    '       +--[ 6 ohm ]--+\n(12V)--+             +--\n       +--[ 3 ohm ]--+', ['9 Ω', '2 Ω', '4.5 Ω', '18 Ω'], 1);
+
+  await clockTo(420, 2800);
+  await N('6:00 AM. Birds are chirping. The assignment is... finished. ✅');
+  mood('geli', 'sleep');
+  await G("Okay, I need to sleep now. Thank you so much for staying up with me!");
+  mood('cheese', 'happy');
+  await C('Anytime. Sleep well, Geli.');
+  phoneScr('.cphone', 'off');
+  $('.callbox').remove();
+  await N('Click. Geli hangs up the phone.');
+  mood('geli', 'shy'); pop('geli', '💜'); mood('cheese', 'sleep'); gain(4);
+  await G("(...Wow. That's the first time I've ever called someone for that long.)");
+  await N('Geli drifts off to sleep at her desk... 😴');
+  dlg.className = 'hidden';
+  await wait(800);
+  fadeEl.classList.add('on'); await wait(1300);
+  const z = document.createElement('div'); z.className = 'zzz'; z.innerHTML = '<span>Z</span><span>z</span><span>Z</span>';
+  $('#game').appendChild(z);
+  await wait(3400);
+  z.remove();
+  goto('invite');
+};
+
+/* LEVEL 5: the invite */
+scenes.invite = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 5 · The Invite');
+  home('day', { laptop: false });
+  mood('geli', 'smile');
+  showChat();
+  await wait(900);
+
+  await N('📍 Saturday afternoon. Geli finally woke up. Cheesecake has been staring at an empty chat box for 20 minutes.');
+  mood('cheese', 'shock');
+  await C('(Okay. Invite her out. Something fun. Something NORMAL.)');
+
+  const opts = ['Yo wanna go out clubbing and hit on some hot girls? 🪩', 'Wanna go on a Costco run together? 🛒', "Let's hang out in your bed 🤤🤤"];
+  const c = await choose('What does Cheesecake text Geli?', opts);
+  dlg.className = 'hidden';
+  mood('cheese', 'smile');
+  msg('cheese', opts[c]);
+  phoneScr('.gphone', 'ring', '<b>💬</b>');
+  await wait(1300);
+  phoneScr('.gphone', 'off');
+  await typing('geli');
+
+  if (c === 0) {
+    msg('geli', 'omg ur right... hot girls are EVERYWHERE 👀 thx for the idea!');
+    mood('geli', 'happy');
+    await wait(1800);
+    await gameOver({ text: 'Geli discovered hot girls and decided to date girls instead.', effect: 'girls' });
+  }
+  if (c === 2) {
+    msg('geli', '...ok that is tooo desperate 💀');
+    mood('geli', 'ew');
+    await wait(1800);
+    await gameOver({ text: 'Geli thinks you are tooo desperate.', effect: 'reject' });
+  }
+
+  msg('geli', 'yess for sure, my groceries are running low! 🛒');
+  mood('geli', 'happy'); pop('geli', '💜'); gain(8);
+  await wait(1200);
+  mood('cheese', 'happy'); pop('cheese', '💜');
+  await C('(She said YES. SHE SAID YES.)');
+  await fadeOut();
+  goto('costco');
+};
+
+/* LEVEL 5b: Costco run (interactive) */
+scenes.costco = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 5 · Costco Run');
+  stage.innerHTML = costcoBG();
+  addActor('geli', GELI, { x: -16, w: 8.5 });
+  addActor('cheese', CHEESE, { x: -30, w: 8.5 });
+  stage.insertAdjacentHTML('beforeend', '<div class="prop" id="cart" style="left:-20%;bottom:24%"><span class="cargo"></span>🛒</div>');
+  const stroll = async (x) => {
+    moveTo('geli', x); moveTo('cheese', x + 13);
+    $('#cart').style.left = (x + 24) + '%';
+    await wait(1800);
+  };
+  const shelf = [
+    { id: 'chicken', e: '🍗', n: 'Rotisserie chicken', say: 'A giant rotisserie chicken. Good pick!' },
+    { id: 'tp', e: '🧻', n: 'Toilet paper', say: '48 rolls of toilet paper... a bit much, but okay.' },
+    { id: 'condoms', e: '📦', n: 'Condoms' },
+    { id: 'rice', e: '🍚', n: 'Rice (20 lb bag)', say: 'Rice! Finally, a responsible adult.' },
+    { id: 'drinks', e: '🥤', n: 'Drinks', say: 'Ooh, drinks. Smart.' },
+    { id: 'berries', e: '🍓', n: 'Berries', say: 'Berries! You get me.' },
+  ];
+  await wait(700);
+
+  await N('📍 Costco. One cart. Two people. Zero self-control.');
+  await stroll(16);
+  await G('Okay, rules: we only buy what we NEED. You pick three things for the cart!');
+
+  const got = [], spots = [28, 40, 52];
+  for (let r = 0; r < 3; r++) {
+    await stroll(spots[r]);
+    const id = await shop(`Cheesecake, pick item ${r + 1} of 3 for the cart!`, shelf.filter((i) => !got.includes(i.id)));
+    const it = shelf.find((i) => i.id === id);
+    toss(it.e);
+    if (id === 'condoms') {
+      mood('geli', 'ew'); mood('cheese', 'shock');
+      await G("...Excuse me?? You just wanna crack, don't you?!");
+      await gameOver({ text: 'Geli thinks you just wanna crack. She is disgusted.', effect: 'reject' });
+    }
+    got.push(id); mood('geli', 'happy'); mood('cheese', 'happy'); gain(3);
+    await G(it.say);
+  }
+
+  await stroll(54);
+  pop('geli', '🍡'); pop('cheese', '🍡');
+  await G('FREE SAMPLES!!');
+  mood('geli', 'shy'); mood('cheese', 'shy'); pop('geli', '💜'); pop('cheese', '💜');
+  await N('They both reach for the last sample at the same time...');
+  await N('The cart was full. Their wallets were not. 💸');
   await fadeOut();
   goto('tbc');
 };
@@ -557,7 +856,7 @@ scenes.stairs = async () => {
 /* END OF WHAT WE'VE BUILT SO FAR */
 scenes.tbc = async () => {
   hud.classList.remove('hidden');
-  setLevel('Chapter 1 complete');
+  setLevel('Stage 2 complete');
   stage.innerHTML = nightBG() + fireflies();
   await wait(600);
   overlay.className = 'show';
@@ -568,8 +867,8 @@ scenes.tbc = async () => {
 };
 
 /* ---------- START ---------- */
-// Tip for testing: add #lab, #stairs or #tbc to the web address to jump straight to that scene.
-const startAt = { bbq: 0, lab: 8, stairs: 24, tbc: 32 };
+// Tip for testing: add #lab, #stairs, #call, #invite, #costco or #tbc to the web address to jump straight to that scene.
+const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, tbc: 65 };
 const hash = location.hash.slice(1);
 if (hash && scenes[hash] && hash !== 'title') {
   progress = startAt[hash] || 0;
