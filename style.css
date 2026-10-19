@@ -306,3 +306,35 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 .siren.s2{left:auto;right:18%}
 .cop.c2{right:auto;left:16%}
 #overlay.fx-cop .go-card{animation:sirenglow .6s steps(2) infinite}
+
+/* v6: stage 4 */
+.actor.hop .inner{animation:hop .45s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2em)}}
+.actor.twirl .inner{animation:twirl 1s linear infinite;transform-origin:center bottom}
+@keyframes twirl{from{transform:perspective(40em) rotateY(0)}to{transform:perspective(40em) rotateY(360deg)}}
+.actor.sway .inner{animation:sway .6s ease-in-out infinite alternate;transform-origin:bottom center}
+@keyframes sway{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+
+.fridge{position:absolute;left:2%;bottom:0;width:14%;height:62%;background:#e3d6fa;border:.2em solid #cbb8f0;border-radius:.6em}
+.fridge i{position:absolute;right:.6em;top:18%;width:.4em;height:5em;background:#8c75c9;border-radius:.2em}
+.bottle{position:absolute;left:44%;bottom:40%;width:1.6em;height:5em;background:linear-gradient(90deg,#a8c98f,#d5e8b8);border-radius:.4em .4em .3em .3em;z-index:2}
+.bottle::before{content:'';position:absolute;left:25%;right:25%;top:-1.5em;height:1.7em;background:#bcd9a0;border-radius:.3em .3em 0 0}
+.bottle::after{content:'';position:absolute;left:10%;right:10%;top:45%;height:1.6em;background:var(--cream);border-radius:.2em}
+.glass{position:absolute;bottom:40%;width:2em;height:2.4em;background:rgba(255,255,255,.35);border:.12em solid #fff;border-radius:.2em .2em .6em .6em;overflow:hidden;z-index:2}
+.g1{left:50.5%}.g2{left:54.5%}
+.wine{position:absolute;left:0;right:0;bottom:0;height:75%;background:#f3e38a;transition:height 1.4s ease-in}
+.glass.empty .wine{height:6%}
+
+.bench{position:absolute;left:28%;width:50%;bottom:0;height:32%;z-index:2;background:linear-gradient(#8f6bc9 0 20%,#6a4aa3 20% 24%,#8f6bc9 24% 44%,#6a4aa3 44% 48%,#4b3a78 48%);border-top:.25em solid #b79bea}
+.rose{position:absolute;bottom:20%;font-size:3em;z-index:3}
+.moonglow{position:absolute;inset:0;background:radial-gradient(circle at 78% 20%,rgba(255,244,214,.4),transparent 55%);pointer-events:none}
+.heartfly{position:absolute;bottom:30%;font-size:2em;z-index:6;opacity:0;animation:hfly 2.6s ease-out forwards;pointer-events:none}
+@keyframes hfly{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-12em)}}
+.shoot{position:absolute;top:12%;left:78%;width:9%;height:.15em;background:linear-gradient(90deg,#fff,transparent);opacity:0;animation:shoot 3.4s ease-in 2s infinite}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(-25deg)}10%{opacity:1}100%{opacity:0;transform:translate(-30em,12em) rotate(-25deg)}}
+.quiz-opts svg{width:70%;display:block;margin:0 auto}
+
+/* game-over: drunk + faint */
+.fx-drunk .go-char{animation:drunkfall 2.2s ease-in-out forwards;transform-origin:bottom center}
+@keyframes drunkfall{0%{transform:rotate(-8deg)}20%{transform:rotate(9deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(12deg)}100%{transform:rotate(88deg) translateY(.4em)}}
+.fx-faint .go-char{animation:tumble 1.4s ease-out forwards;transform-origin:bottom center}
