@@ -1,0 +1,167 @@
+/* ===== Geli & Cheesecake: The Dating Game — styles ===== */
+:root{
+  --plum:#3b2a5e; --plum2:#6a4aa3; --lav:#e3d6fa;
+  --cream:#fff7ea; --pink:#ff6fa5; --ink:#2d2142;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:radial-gradient(circle at 50% 30%,#3b2a5e,#1a1230);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  font-family:'Patrick Hand','Comic Sans MS',cursive;color:var(--ink);
+}
+.hidden{display:none!important}
+
+/* the whole game scales with the window: 1em = 1/62 of the game width */
+#game{
+  --w:min(98vw,153.6vh,980px);
+  position:relative;width:var(--w);aspect-ratio:16/10;
+  font-size:calc(var(--w)/62);
+  overflow:hidden;border-radius:1.2em;background:#000;user-select:none;
+  box-shadow:0 0 0 .4em var(--cream),0 1em 3em rgba(0,0,0,.55);
+}
+#stage{position:absolute;inset:0}
+.bg{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- characters ---------- */
+.actor{
+  position:absolute;
+  transition:left 1.6s ease-in-out,bottom 1.4s ease-in-out,width 1.6s ease-in-out,opacity 1.2s;
+}
+.actor svg{display:block;width:100%;height:auto;overflow:visible;transition:transform .2s}
+.actor .inner{animation:bob 2.6s ease-in-out infinite;transform-origin:bottom center}
+.actor.walking .inner{animation:step .42s ease-in-out infinite}
+.actor .tag{
+  display:none;position:absolute;top:-2.2em;left:50%;transform:translateX(-50%);
+  background:var(--cream);border:.12em solid var(--plum2);border-radius:1em;
+  padding:.05em .7em;white-space:nowrap;font-size:1.1em;
+}
+.actor.pickable{cursor:pointer;z-index:6}
+.actor.pickable .tag{display:block;animation:bounce 1s ease-in-out infinite}
+.actor.pickable:hover svg{transform:scale(1.08);filter:drop-shadow(0 0 .6em #fff)}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+.pop{position:absolute;top:-1.6em;left:50%;font-size:2.2em;transform:translateX(-50%);animation:pop 1.3s ease forwards;pointer-events:none}
+
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.35em)}}
+@keyframes step{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-.7em) rotate(2deg)}}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,.5em) scale(.4)}20%{opacity:1;transform:translate(-50%,0) scale(1.2)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-1.4em) scale(1)}}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-.3em)}}
+
+/* ---------- scenery bits ---------- */
+.smoke{position:absolute;font-size:2.2em;opacity:0;animation:rise 3.2s ease-out infinite;pointer-events:none}
+@keyframes rise{0%{opacity:0;transform:translateY(0) scale(.6)}30%{opacity:.8}100%{opacity:0;transform:translateY(-4em) scale(1.4)}}
+.ff{position:absolute;width:.5em;height:.5em;border-radius:50%;background:#fff3a8;box-shadow:0 0 .8em .3em rgba(255,240,150,.8);animation:flicker 4s ease-in-out infinite}
+@keyframes flicker{0%,100%{opacity:.15;transform:translate(0,0)}50%{opacity:1;transform:translate(1.2em,-1.5em)}}
+
+/* ---------- title screen ---------- */
+.title-card{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:48%;text-align:center;color:#fff;z-index:3;text-shadow:0 .1em .4em rgba(30,10,60,.7)}
+.title-card .heart{font-size:3em;animation:bounce2 1.6s ease-in-out infinite}
+.title-card h1{font-size:4em;line-height:1;font-weight:normal}
+.title-card h2{font-size:1.8em;font-weight:normal;color:#ffd1e6;margin-bottom:.6em}
+.title-card .q{font-size:1.7em;margin-bottom:.9em;line-height:1.15}
+@keyframes bounce2{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-.3em) scale(1.12)}}
+
+button.big{
+  font:inherit;font-size:1.9em;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,#ff8dbb,#ff5f9f);
+  border:.12em solid #fff;border-radius:2em;padding:.15em 1.4em;
+  box-shadow:0 .2em 0 #c53d78;animation:pulse 1.6s ease-in-out infinite;
+}
+button.big:hover{filter:brightness(1.08)}
+button.big:active{transform:translateY(.12em);box-shadow:0 .08em 0 #c53d78}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+/* ---------- progress bar ---------- */
+#hud{position:absolute;top:2.5%;left:3%;right:3%;display:flex;align-items:center;gap:1em;z-index:5;font-size:1.2em}
+#hud-label{background:var(--cream);border:.14em solid var(--plum2);border-radius:1em;padding:.05em .8em;white-space:nowrap}
+#bar{position:relative;flex:1;height:1.1em;background:rgba(255,255,255,.55);border:.16em solid #fff;border-radius:1em;margin-right:.8em}
+#bar-fill{height:100%;width:0;background:linear-gradient(90deg,#ffa6c9,#ff5f9f);border-radius:1em;transition:width 1s ease}
+#bar-heart{position:absolute;top:50%;left:0;transform:translate(-50%,-50%);font-size:1.9em;transition:left 1s ease;filter:drop-shadow(0 0 .15em #fff)}
+#bar-heart.beat{animation:beat .7s ease}
+@keyframes beat{0%,100%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(1.6)}}
+.floater{position:absolute;top:10%;left:50%;transform:translateX(-50%);z-index:6;font-size:2em;color:#fff;text-shadow:0 .08em .3em #c53d78;animation:floatup 1.6s ease forwards;pointer-events:none}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,.6em)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-1.4em)}}
+
+/* ---------- dialogue box ---------- */
+#dialogue{
+  position:absolute;left:3%;right:3%;bottom:3%;min-height:5.4em;z-index:10;
+  background:rgba(255,247,234,.97);border:.13em solid var(--plum2);border-radius:.9em;
+  padding:1.1em 1.4em .8em;font-size:1.4em;line-height:1.25;cursor:pointer;
+  box-shadow:0 .25em 0 rgba(58,38,100,.35);
+}
+#dialogue .name{position:absolute;top:-.9em;left:1em;background:var(--plum2);color:#fff;font-size:.8em;padding:.05em .9em;border-radius:1em}
+#dialogue .name:empty{display:none}
+#dialogue .text{min-height:2.5em}
+#dialogue.narr .text{font-style:italic;color:#5a4a7a}
+#dialogue .next{position:absolute;right:1em;bottom:.3em;color:var(--plum2);opacity:0}
+#dialogue.ready .next{opacity:1;animation:bounce3 .9s ease-in-out infinite}
+@keyframes bounce3{0%,100%{transform:translateY(0)}50%{transform:translateY(.2em)}}
+.choices button,.quiz-opts button{
+  display:block;width:100%;margin:.35em 0 0;padding:.3em .8em;text-align:left;
+  font:inherit;color:var(--ink);background:#fff;cursor:pointer;
+  border:.1em solid var(--plum2);border-radius:.7em;
+}
+.choices button:hover,.quiz-opts button:hover{background:var(--lav)}
+.timer{height:.5em;background:#e6dff3;border-radius:1em;overflow:hidden;margin:.5em 0}
+.timer div{height:100%;width:100%;background:linear-gradient(90deg,#ff6fa5,#ffb36b)}
+
+/* ---------- overlays: quiz, game over, schedule ---------- */
+#overlay{position:absolute;inset:0;z-index:20;align-items:center;justify-content:center;background:rgba(20,10,40,.8)}
+#overlay.show{display:flex}
+#overlay.quiz{background:rgba(20,10,40,.55)}
+.quiz-card{background:var(--cream);border:.15em solid var(--plum2);border-radius:1em;padding:1em 1.6em 1.2em;width:56%;font-size:1.3em}
+.quiz-card h3{font-weight:normal;margin-bottom:.4em}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:.4em}
+.quiz-opts button{margin:0;text-align:center}
+pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;font-family:Consolas,Menlo,monospace;font-size:.8em;line-height:1.4;overflow:hidden;margin-bottom:.3em}
+
+.go-card{background:var(--cream);border:.18em solid var(--pink);border-radius:1.2em;padding:1em 2em 1.2em;width:62%;text-align:center;font-size:1.25em}
+.go-card h2{font-size:2.2em;font-weight:normal;color:#c53d78;letter-spacing:.05em}
+.go-card p{margin:.3em 0 .8em;line-height:1.2}
+.go-stage{position:relative;height:11em;display:flex;justify-content:center;align-items:flex-end;overflow:hidden}
+.go-char{width:6em}
+.go-char svg{display:block;width:100%;height:auto}
+.fly{position:absolute;left:50%;top:45%;font-size:1.2em;animation:orbit 1.6s linear infinite}
+@keyframes orbit{from{transform:rotate(0) translateX(var(--r)) rotate(0)}to{transform:rotate(360deg) translateX(var(--r)) rotate(-360deg)}}
+.tumble .go-char{animation:tumble 1.4s ease-out forwards;transform-origin:bottom center}
+@keyframes tumble{0%{transform:rotate(0)}60%{transform:rotate(100deg) translateY(.5em)}100%{transform:rotate(88deg) translateY(.4em)}}
+.dizzy{position:absolute;left:52%;top:20%;font-size:1.8em;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.snail{position:absolute;bottom:0;left:-10%;font-size:2em;animation:crawl 7s linear infinite}
+@keyframes crawl{to{left:105%}}
+.broken{position:absolute;left:35%;bottom:30%;font-size:2em;animation:drift 2.4s ease-out infinite}
+.broken.b2{left:55%;animation-delay:.8s}.broken.b3{left:45%;animation-delay:1.6s}
+@keyframes drift{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-6em)}}
+.siren{position:absolute;left:18%;top:10%;font-size:2.6em;animation:flash .5s steps(2) infinite}
+.cop{position:absolute;right:16%;bottom:0;font-size:3em}
+@keyframes flash{50%{opacity:.2}}
+#overlay.police .go-card{animation:sirenglow .6s steps(2) infinite}
+@keyframes sirenglow{0%{box-shadow:0 0 2em .5em rgba(255,40,70,.7)}100%{box-shadow:0 0 2em .5em rgba(60,90,255,.7)}}
+
+/* schedule comparison (BBQ scene) */
+.sched-wrap{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;gap:3em;background:rgba(40,25,70,.45);padding-bottom:8%;transition:opacity .7s}
+.sched-wrap.out{opacity:0}
+.sched-wrap .card{background:var(--cream);border-radius:.8em;padding:.7em .9em;width:14em;transition:transform 1s ease;font-size:1.1em;text-align:center}
+.sched-wrap .left{transform:translateX(-45em)}
+.sched-wrap .right{transform:translateX(45em)}
+.sched-wrap.in .left,.sched-wrap.in .right{transform:translateX(0)}
+.sched-wrap.merge .left{transform:translateX(1.6em)}
+.sched-wrap.merge .right{transform:translateX(-1.6em)}
+.days,.sched{display:grid;grid-template-columns:repeat(5,1fr);gap:.25em;margin-top:.3em}
+.days span{font-size:.8em;color:#6a4aa3}
+.sched i{display:block;height:1.6em;border-radius:.3em;background:#eee6fb}
+.sched i.on{background:#b79bea}
+.sched-wrap.merge .sched i.match{background:#ff6fa5;animation:matchpulse .8s ease-in-out infinite}
+@keyframes matchpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.burst{position:absolute;bottom:34%;left:50%;transform:translateX(-50%);background:#fff;border:.15em solid var(--pink);border-radius:1em;padding:.1em 1em;font-size:1.6em;animation:bounce 1s ease-in-out infinite}
+
+/* ---------- fade between scenes ---------- */
+#fade{position:absolute;inset:0;background:#1a1030;opacity:0;pointer-events:none;transition:opacity 1.2s;z-index:15}
+#fade.on{opacity:1}
+
+/* ---------- phone in portrait ---------- */
+#rotate{display:none}
+@media (orientation:portrait) and (max-width:700px){
+  #rotate{display:flex;position:fixed;inset:0;z-index:99;background:#1f1633;color:#fff;align-items:center;justify-content:center;text-align:center;font-size:22px;padding:2em}
+}

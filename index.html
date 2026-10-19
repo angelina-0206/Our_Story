@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geli &amp; Cheesecake: The Dating Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game">
+    <div id="stage"></div>
+
+    <!-- progress bar (hidden on the title screen) -->
+    <div id="hud" class="hidden">
+      <span id="hud-label">Level 1</span>
+      <div id="bar">
+        <div id="bar-fill"></div>
+        <div id="bar-heart">💗</div>
+      </div>
+    </div>
+
+    <div id="dialogue" class="hidden"></div>
+    <div id="overlay" class="hidden"></div>
+    <div id="fade"></div>
+  </div>
+
+  <div id="rotate">📱↻<br>Please rotate your phone sideways to play!</div>
+
+  <script src="game.js"></script>
+</body>
+</html>
