@@ -200,7 +200,7 @@ function startScene(name) {
 }
 
 /* ---------- 2. CHARACTERS ---------- */
-const GELI   = { skin: '#f6d7bd', hair: '#6b4429', style: 'wolf',  shirt: '#a483d8', pants: '#3d3a5c', blush: true };
+const GELI   = { skin: '#f6d7bd', hair: '#80402b', style: 'wolf',  shirt: '#a483d8', pants: '#3d3a5c', blush: true, mole: true };
 const CHEESE = { skin: '#f3d2b3', hair: '#15131b', style: 'bowl',  shirt: '#6f8fd8', pants: '#44445c' };
 const FRIEND = { skin: '#f1cfae', hair: '#2b2323', style: 'short', shirt: '#e9a76a', pants: '#4a4a6a' };
 const GUY1   = { skin: '#f4d4b5', hair: '#232323', style: 'short', shirt: '#6bbf8e', pants: '#3f4a5a' };
@@ -213,21 +213,20 @@ function person(o) {
   const ink = '#2d2142';
 
   const hairBack = {
-    wolf: `<path d="M23 56 C17 20 83 20 77 56 L87 105 L77 99 L73 111 L64 100 L57 109 L50 99 L43 109 L36 100 L27 111 L23 99 L13 105 Z" fill="${hair}"/>`,
-    long: `<path d="M22 56 C16 18 84 18 78 56 L83 120 Q50 128 17 120 Z" fill="${hair}"/>`,
+    wolf: `<path d="M21 56 C14 14 86 14 79 56 L83 88 L76 85 L72 92 L64 86 L57 91 L50 85 L43 91 L36 86 L28 92 L24 85 L17 88 Z" fill="${hair}"/>
+           <path d="M24 62 L8 69 L25 75 Z M76 62 L92 69 L75 75 Z" fill="${hair}"/>`,
+    long: `<path d="M20 56 C13 12 87 12 80 56 L85 120 Q50 128 15 120 Z" fill="${hair}"/>`,
   }[o.style] || '';
 
   const hairFront = {
-    wolf: `<path d="M24 54 C20 20 80 20 76 54 C71 41 62 34 50 33 C38 34 29 41 24 54 Z" fill="${hair}"/>
-           <path d="M24 54 L19 82 L33 66 Z M76 54 L81 82 L67 66 Z" fill="${hair}"/>
-           <path d="M50 25 Q47 34 38 40 Q49 36 50 25 Z" fill="${hair}"/>`,
-    bowl: `<path d="M23 56 C18 16 82 16 77 56 L72 47 L67 52 L61 44 L55 51 L50 43 L44 51 L38 44 L33 52 L28 47 Z" fill="${hair}"/>
-           <path d="M23 56 L23 66 L31 60 Z M77 56 L77 66 L69 60 Z" fill="${hair}"/>
-           <path d="M34 26 L29 13 L43 22 Z M49 22 L53 8 L59 22 Z M62 24 L73 14 L71 30 Z" fill="${hair}"/>`,
-    short: `<path d="M24 52 C20 18 80 18 76 52 C70 40 60 35 50 35 C40 35 30 40 24 52 Z" fill="${hair}"/>
-            <path d="M40 24 L38 13 L48 21 Z M56 21 L62 12 L64 25 Z" fill="${hair}"/>`,
-    long: `<path d="M24 50 C22 20 78 20 76 50 L74 40 Q50 30 26 40 Z" fill="${hair}"/>
-           <path d="M24 50 L22 78 L31 62 Z M76 50 L78 78 L69 62 Z" fill="${hair}"/>`,
+    wolf: `<path d="M22 56 C16 6 84 6 78 56 L76 51 Q50 46 24 51 Z" fill="${hair}"/>
+           <path d="M25 38 L34 42 L30 77 Z M75 38 L66 42 L70 77 Z" fill="${hair}"/>`,
+    bowl: `<path d="M21 62 C13 6 87 6 79 62 L74 56 Q70 50 64 49 Q57 51 50 48 Q43 51 36 49 Q30 50 26 56 Z" fill="${hair}"/>
+           <path d="M21 62 L22 72 L29 62 Z M79 62 L78 72 L71 62 Z" fill="${hair}"/>`,
+    short: `<path d="M21 54 C13 8 87 8 79 54 C73 42 62 36 50 36 C38 36 27 42 21 54 Z" fill="${hair}"/>
+            <path d="M36 25 L40 13 L48 23 Z M54 22 L63 12 L65 27 Z" fill="${hair}"/>`,
+    long: `<path d="M22 52 C16 6 84 6 78 52 L74 40 Q50 30 26 40 Z" fill="${hair}"/>
+           <path d="M22 52 L20 80 L31 62 Z M78 52 L80 80 L69 62 Z" fill="${hair}"/>`,
   }[o.style] || '';
 
   const eyes = {
@@ -250,6 +249,9 @@ function person(o) {
 
   const blush = o.blush ? '<circle cx="34" cy="64" r="4" fill="#ff9db8" opacity=".5"/><circle cx="66" cy="64" r="4" fill="#ff9db8" opacity=".5"/>' : '';
 
+  // Geli's beauty mark: just under her left eye (the right one as we look at her), toward the side
+  const mole = o.mole ? '<circle cx="65" cy="62.5" r="1.4" fill="#5a3326"/>' : '';
+
   return `<svg viewBox="0 0 100 180" xmlns="http://www.w3.org/2000/svg">
     ${hairBack}
     <rect x="30" y="128" width="18" height="40" rx="7" fill="${pants}"/>
@@ -264,7 +266,7 @@ function person(o) {
     <rect x="44" y="70" width="12" height="14" fill="${skin}"/>
     <circle cx="26" cy="54" r="4.5" fill="${skin}"/><circle cx="74" cy="54" r="4.5" fill="${skin}"/>
     <ellipse cx="50" cy="50" rx="24" ry="25" fill="${skin}"/>
-    ${blush}${eyes}${mouth}${hairFront}
+    ${blush}${mole}${eyes}${mouth}${hairFront}
   </svg>`;
 }
 
