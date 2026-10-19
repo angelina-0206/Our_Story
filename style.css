@@ -124,7 +124,7 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 .go-char svg{display:block;width:100%;height:auto}
 .fly{position:absolute;left:50%;top:45%;font-size:1.2em;animation:orbit 1.6s linear infinite}
 @keyframes orbit{from{transform:rotate(0) translateX(var(--r)) rotate(0)}to{transform:rotate(360deg) translateX(var(--r)) rotate(-360deg)}}
-.tumble .go-char{animation:tumble 1.4s ease-out forwards;transform-origin:bottom center}
+.fx-tumble .go-char{animation:tumble 1.4s ease-out forwards;transform-origin:bottom center}
 @keyframes tumble{0%{transform:rotate(0)}60%{transform:rotate(100deg) translateY(.5em)}100%{transform:rotate(88deg) translateY(.4em)}}
 .dizzy{position:absolute;left:52%;top:20%;font-size:1.8em;animation:spin 1.2s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -136,7 +136,7 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 .siren{position:absolute;left:18%;top:10%;font-size:2.6em;animation:flash .5s steps(2) infinite}
 .cop{position:absolute;right:16%;bottom:0;font-size:3em}
 @keyframes flash{50%{opacity:.2}}
-#overlay.police .go-card{animation:sirenglow .6s steps(2) infinite}
+#overlay.fx-police .go-card{animation:sirenglow .6s steps(2) infinite}
 @keyframes sirenglow{0%{box-shadow:0 0 2em .5em rgba(255,40,70,.7)}100%{box-shadow:0 0 2em .5em rgba(60,90,255,.7)}}
 
 /* schedule comparison (BBQ scene) */
@@ -238,3 +238,47 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 .shelf-g button{width:8em;font:inherit;color:var(--ink);background:#fff;border:.1em solid var(--plum2);border-radius:.7em;padding:.25em .2em;cursor:pointer;line-height:1.1}
 .shelf-g button span{display:block;font-size:2em}
 .shelf-g button:hover{background:var(--lav)}
+
+/* v4: phone feed = random boxes that pause, then scroll */
+.scr.feed{display:block;position:relative;overflow:hidden;background:#fff;animation:none}
+.reel{position:absolute;left:0;right:0;top:0}
+.fc{margin:.2em .2em 0;border-radius:.3em}
+
+/* game-over extras */
+.gooblob{position:absolute;left:50%;bottom:0;width:6em;height:10.8em;transform:translateX(-50%);pointer-events:none;opacity:.9;
+  background:radial-gradient(circle at 30% 22%,#7a3fc4 0 16%,transparent 17%),radial-gradient(circle at 68% 38%,#9b5de5 0 18%,transparent 19%),radial-gradient(circle at 42% 62%,#7a3fc4 0 22%,transparent 23%),radial-gradient(circle at 72% 82%,#9b5de5 0 14%,transparent 15%),radial-gradient(circle at 25% 85%,#7a3fc4 0 12%,transparent 13%)}
+
+/* exam */
+.desk.wide{left:14%;width:72%}
+.actor .squig{position:absolute;left:-10%;top:-4.4em;width:120%;pointer-events:none;animation:wob .5s ease-in-out infinite alternate}
+@keyframes wob{from{transform:rotate(-4deg) scale(1)}to{transform:rotate(4deg) scale(1.1)}}
+.fpga{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:4;background:#1f7a5c;border:.2em solid #0e4a37;border-radius:.8em;padding:.3em .9em .4em;color:#fff;text-align:center;font-size:1.2em}
+.leds{display:flex;gap:.45em;margin:.35em 0}
+.leds i{width:.9em;height:.9em;border-radius:50%;background:#4a1f26}
+.leds i.on{background:#ff4a5a;box-shadow:0 0 .8em .3em rgba(255,70,90,.8)}
+
+/* hallway: Geli's panicking head space */
+.mind{position:absolute;left:4%;top:11%;width:44%;height:22%;z-index:5;background:rgba(255,255,255,.9);border:.15em solid var(--pink);border-radius:2em;overflow:hidden}
+.mind span{position:absolute;color:#c53d78;white-space:nowrap;animation:jit .3s steps(2) infinite}
+.mind b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:normal;font-size:1.7em;color:#6a4aa3;text-shadow:0 0 .4em #fff}
+@keyframes jit{50%{transform:translate(.2em,-.15em)}}
+
+/* dorm kitchen */
+.shelf.low{top:auto;bottom:3%}
+.shelf.low .shelf-g button{width:5.6em}
+.pot{position:absolute;left:42.5%;bottom:39.5%;width:15%;height:12%}
+.pot .body{position:absolute;left:0;right:0;bottom:0;height:80%;background:#3b3b4f;border-radius:0 0 1.8em 1.8em}
+.pot .liq{position:absolute;left:3%;right:3%;top:6%;height:30%;border-radius:50%;background:#bde3ff;box-shadow:inset 0 -.3em .5em rgba(0,0,0,.2);transition:background-color .8s}
+.pot .ph{position:absolute;top:34%;width:1.4em;height:.7em;background:#2b2b3c;border-radius:.4em}
+.pot .ph.l{left:-1.2em}.pot .ph.r{right:-1.2em}
+.pot .pb{position:absolute;top:10%;width:1em;height:1em;border-radius:50%;background:#c79cf5;opacity:0;animation:bubble 1.4s ease-in infinite}
+.pb1{left:25%}.pb2{left:48%;animation-delay:.5s}.pb3{left:68%;animation-delay:.9s}
+@keyframes bubble{0%{opacity:0;transform:translateY(0) scale(.5)}30%{opacity:.9}100%{opacity:0;transform:translateY(-2.5em) scale(1.2)}}
+.pot.boom{animation:boom .6s ease-out forwards}
+@keyframes boom{0%{transform:scale(1)}40%{transform:scale(1.5,.7)}100%{transform:scale(2.2,2.6) translateY(-1.5em);opacity:0}}
+.splat{position:absolute;inset:0;z-index:8;pointer-events:none;background:radial-gradient(circle at 50% 55%,rgba(122,63,196,.95) 0 20%,rgba(155,93,229,.85) 40%,rgba(122,63,196,.4) 75%);animation:splat .7s ease-out forwards}
+@keyframes splat{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+.drop{position:absolute;left:48%;top:22%;font-size:2.2em;z-index:3;animation:dropin .9s ease-in forwards;pointer-events:none}
+@keyframes dropin{0%{opacity:0;transform:translateY(-2em)}25%{opacity:1}100%{opacity:0;transform:translateY(11em) scale(.5)}}
+.dtable{position:absolute;left:12%;right:12%;bottom:0;height:34%;z-index:2;background:linear-gradient(#e8c9a0 0 8%,#b98a5a 8%);border-top:.25em solid #f3dcc0}
+.bowl{position:absolute;top:-2.3em;font-size:2.6em;filter:hue-rotate(250deg) saturate(2)}
