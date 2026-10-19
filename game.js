@@ -369,7 +369,7 @@ scenes.title = async () => {
       <div class="heart">💜</div>
       <h1>Geli &amp; Cheesecake</h1>
       <h2>The Dating Game</h2>
-      <p class="q">Cheesecake... are you ready to try to date me again?</p>
+      <p class="q">Cheesecake... are you ready to try to dating me again?</p>
       <button id="start" class="big">Start 💜</button>
     </div>`);
   await new Promise((res) => { $('#start').onclick = res; });
@@ -409,18 +409,18 @@ scenes.bbq = async () => {
   await N('📍 Engineering Student Centre courtyard. Free BBQ day. The hot dog line is looooong.');
   await walk('geli', 34);
   pop('cheese', '🌭');
-  await N('Geli joins the line for hot dogs... and just happens to end up right behind two guys.');
+  await N('Geli joins the line for hot dogs... and just happens to end up right behind two people.');
   moveTo('friend', 68); moveTo('cheese', 54); moveTo('geli', 38);
   await G("(Okay, hot dog line. Hot dog line. ...Why is that guy's hair so messy?)");
   pop('geli', '💬');
-  await G("Hi! Sorry, random question. What's your name?");
+  await G("Hi! I'm Angelina, nice to meet you guy! What's your name?");
   mood('cheese', 'shock'); pop('cheese', '❗');
   await C("Oh! Uh... I'm Cheesecake.");
-  await F('(whispering) Bro. Say something cool.');
+  await F('(whispering) Bro. Is that rizz??.');
   mood('cheese', 'smile');
-  await G('Cheesecake? Okay, I love that. I\'m Geli! So... are you in Elec or CPEN?');
+  await G('Cheesecake? Okay, Cool! I\'m Geli! So... are you in ELEC or CPEN?');
 
-  const major = await choose('Cheesecake, answer very carefully...', ['⚡ Elec', '💻 CPEN']);
+  const major = await choose('Cheesecake, answer very carefully...', ['⚡ ELEC', '💻 CPEN']);
   if (major === 1) {
     mood('cheese', 'happy');
     await C('CPEN!');
@@ -436,11 +436,11 @@ scenes.bbq = async () => {
   await compareSchedules();
   mood('cheese', 'shock');
   await C('Wait... we have the same lab section?!');
-  await G('We do! Okay, I have to run to my next class, but see you in class!');
+  await G('We do! OMG I have not found anyone that CPSC lab yet... Ok gotta go, but see you in class!');
   mood('cheese', 'happy');
   await C('S-see you in class!');
   moveTo('geli', -16);
-  await F('Smooth, bro. Real smooth.');
+  await F('Smooth, bro. That is a hot girl damnn.');
   await fadeOut();
   goto('lab');
 };
@@ -469,20 +469,20 @@ scenes.lab = async () => {
   if (who === 'guy1' || who === 'guy2') {
     await C('Hey... wanna be lab partners?');
     mood(who, 'shock');
-    await say(who === 'guy1' ? 'Guy 1' : 'Guy 2', 'Uh... nah bro, I already have a partner.');
-    await gameOver({ text: 'The entire row of monitors turned around to watch. Cheesecake has been rejected in front of everyone.', effect: 'tumble' });
+    await say(who === 'guy1' ? 'Guy 1' : 'Guy 2', 'Sure bro, meet me at my dorm tonight and we will talk more hehe.');
+    await gameOver({ text: 'Cheesecake was never able to walk properly for the next few months...', effect: 'tumble' });
   }
   if (who === 'girl1') {
     await C('Hey... wanna be lab partners?');
     mood('girl1', 'ew');
-    await say('Girl 1', "Sorry, I'm already working with someone.");
+    await say('Girl 1', "Sorry, I'm working with my bf");
     await gameOver({ text: 'Girl 1 politely refused. Cheesecake is defeated.', effect: 'reject' });
   }
 
   // chose Geli
   mood('geli', 'happy'); pop('geli', '💜'); gain(8);
   await C('Hey... wanna be lab partners?');
-  await G('Oh, Cheesecake! Sure, sit down.');
+  await G('Oh, You are uhh... Name is not important, the BBQ guy! Sure, sit down.');
   await N('They open the assignment together.');
   await G('Okay, quick warm-up before we start. You have 25 seconds. No pressure. (A little pressure.)');
 
@@ -540,7 +540,7 @@ scenes.stairs = async () => {
   await G("Ooh, that's an interesting question!");
   await G('Hmm... I skate in my free time. I play the ukulele. And I do watercolour paintings!');
   mood('cheese', 'happy');
-  await C("(She skates?! Ukulele?! Watercolour?! ...I'm doomed. In a good way.)");
+  await C("(She skates?! Ukulele?! Watercolour?! Oh damn she's so cool.)");
   await N('And the two kept walking, talking about everything and nothing...');
   moveTo('geli', 78, 36, 5); moveTo('cheese', 66, 36, 5);
   await wait(1200);
