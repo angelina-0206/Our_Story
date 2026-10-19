@@ -69,19 +69,19 @@ document.addEventListener('keydown', (e) => {
 
 // Ask a multiple-choice question. Returns the number picked (0, 1, 2...), or -1 if time ran out.
 // Pass {code:'...'} to show a code question in a big card, {time:25} for a countdown.
-function choose(prompt, options, { time = 0, code = '' } = {}) {
+function choose(prompt, options, { time = 0, code = '', card = false } = {}) {
   if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
   endReplay();
   const t = token;
   return new Promise((res) => {
-    const quiz = !!code;
+    const quiz = !!code || card;
     const btns = options.map((o, i) => `<button data-i="${i}">${o}</button>`).join('');
     const timer = time ? '<div class="timer"><div></div></div>' : '';
     let root;
     if (quiz) {
       dlg.className = 'hidden';
       overlay.className = 'show quiz';
-      overlay.innerHTML = `<div class="quiz-card"><h3>${prompt}</h3><pre class="code">${esc(code)}</pre>${timer}<div class="quiz-opts">${btns}</div></div>`;
+      overlay.innerHTML = `<div class="quiz-card"><h3>${prompt}</h3>${code ? `<pre class="code">${esc(code)}</pre>` : ''}${timer}<div class="quiz-opts">${btns}</div></div>`;
       root = overlay;
     } else {
       dlg.className = ''; dlg.onclick = null;
@@ -190,14 +190,16 @@ function gameOver({ title = 'GAME OVER', text, effect = 'tumble' }) {
     snail: '<span class="snail">🐌</span>',
     tumble: '<span class="dizzy">💫</span>',
     girls: '<span class="kiss k1">💋</span><span class="kiss k2">💋</span>',
+    drunk: '<span class="broken">🍾</span><span class="broken b2">🥴</span><span class="broken b3">💫</span>',
+    faint: '<span class="dizzy">💫</span><span class="broken">💗</span><span class="broken b3">😳</span>',
     crush: '<span class="broken">💥</span><span class="broken b2">💫</span><span class="broken b3">💥</span>',
     cop: '<span class="siren">🚨</span><span class="siren s2">🚨</span><span class="cop">🚓</span><span class="cop c2">🚓</span>',
     purple: '<div class="gooblob"></div><span class="siren">🚨</span><span class="broken">🟣</span><span class="broken b3">🟣</span>',
     nutrient: '<span class="broken">💀</span><span class="broken b2">🥬</span><span class="broken b3">🍎</span>',
   }[effect] || '';
-  const m = (effect === 'flies' || effect === 'nutrient') ? 'dead' : 'sad';
+  const m = (effect === 'flies' || effect === 'nutrient') ? 'dead' : effect === 'drunk' ? 'happy' : 'sad';
   overlay.className = 'show fx-' + effect;
-  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'crush' ? crushHTML() : effect === 'cop' ? handBall() : effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
+  overlay.innerHTML = `<div class="go-card"><h2>${title}</h2><div class="go-stage">${effect === 'faint' ? `<div class="go-char">${person({ ...GELI, mood: 'dead' })}</div>` : effect === 'crush' ? crushHTML() : effect === 'cop' ? handBall() : effect === 'girls' ? girlsTrio() : `<div class="go-char">${person({ ...CHEESE, mood: m })}</div>`}${extra}</div><p>${text}</p><button id="retry" class="big">Try again</button></div>`;
   $('#retry').onclick = () => startScene(currentScene, answers.slice(0, -1));
   return new Promise(() => {}); // never continues: the scene stops here
 }
@@ -211,7 +213,7 @@ function startScene(name, replay) {
   currentScene = name;
   overlay.className = 'hidden'; overlay.innerHTML = '';
   dlg.className = 'hidden'; dlg.onclick = null; dlg.innerHTML = '';
-  stage.innerHTML = '';
+  stage.innerHTML = ''; stage.removeAttribute('style');
   Object.keys(actors).forEach((k) => delete actors[k]);
   setProgress(checkpoints[name] ?? progress);
   fadeEl.classList.remove('on');
@@ -303,7 +305,7 @@ function person(o) {
     <rect x="44" y="70" width="12" height="14" fill="${skin}"/>
     ${o.style === 'bowl' ? '' : ears}
     <ellipse cx="50" cy="50" rx="24" ry="25" fill="${skin}"/>
-    ${blush}${mole}${eyes}${mouth}${hairFront}
+    ${blush}${mole}${eyes}${mouth}${hairFront}${o.hat ? '<path d="M23 40 C20 4 80 4 77 40 Z" fill="#8d8d99"/><rect x="21" y="35" width="58" height="8" rx="4" fill="#6c6c7a"/><circle cx="50" cy="8" r="4.5" fill="#a9a9b6"/>' : ''}
     ${o.style === 'bowl' ? ears : ''}
   </svg>`;
 }
@@ -543,16 +545,71 @@ function squig(id, on = true) {
   if (old) old.remove();
   if (on) el.insertAdjacentHTML('beforeend', '<svg class="squig" viewBox="0 0 100 40"><path d="M8 32 q6 -26 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 M18 12 l8 -8 l8 10 l8 -10 l8 10 l8 -10 l8 10" fill="none" stroke="#3b2a5e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
 }
-function mind(on = true) {
+function mind(on = true, big = 'I WANNA HUG CHEESECAKE', bits = ['hug Cheesecake', 'just friends!!', 'what do I do', '💗', 'PANIC', 'hug him', 'what do I do', '💗💗', 'hug Cheesecake', 'just friends...']) {
   const old = stage.querySelector('.mind'); if (old) old.remove();
   if (!on) return;
-  const bits = ['hug Cheesecake', 'just friends!!', 'what do I do', '💗', 'PANIC', 'hug him', 'what do I do', '💗💗', 'hug Cheesecake', 'just friends...'];
-  stage.insertAdjacentHTML('beforeend', `<div class="mind">${bits.map((b) => `<span style="left:${(Math.random() * 75).toFixed(0)}%;top:${(Math.random() * 70).toFixed(0)}%;animation-delay:-${(Math.random() * 2).toFixed(1)}s;font-size:${(0.9 + Math.random() * 0.7).toFixed(1)}em">${b}</span>`).join('')}<b>I WANNA HUG CHEESECAKE</b></div>`);
+  stage.insertAdjacentHTML('beforeend', `<div class="mind">${bits.map((b) => `<span style="left:${(Math.random() * 75).toFixed(0)}%;top:${(Math.random() * 70).toFixed(0)}%;animation-delay:-${(Math.random() * 2).toFixed(1)}s;font-size:${(0.9 + Math.random() * 0.7).toFixed(1)}em">${b}</span>`).join('')}<b>${big}</b></div>`);
 }
 function dropIn(e) {
   if (replaying) return;
   const d = document.createElement('span'); d.className = 'drop'; d.textContent = e;
   stage.appendChild(d); setTimeout(() => d.remove(), 1000);
+}
+
+/* ----- stage 4: balcony, wine, street, rose garden, ending ----- */
+const TIPSY = { ...GELI, skin: '#f8c1bd', hat: true };
+const manyStars = (n, maxY, big = 0.45) => Array.from({ length: n }, () => `<circle cx="${(Math.random() * 160).toFixed(0)}" cy="${(Math.random() * maxY).toFixed(0)}" r="${(0.2 + Math.random() * big).toFixed(2)}" fill="#fff" opacity="${(0.5 + Math.random() * 0.5).toFixed(2)}"/>`).join('');
+const skyDef = (id, a, b, c) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".6" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient></defs>`;
+
+const balconyBG = () => {
+  let w = '';
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) w += `<rect x="${112 + c * 8}" y="${24 + r * 8}" width="5" height="5" rx=".5" fill="${(r * 3 + c * 5) % 4 ? '#ffe9a8' : '#3b2f66'}"/>`;
+  return `${SVG_OPEN}${skyDef('gBal', '#120d33', '#3d2f7a', '#c47fb0')}<rect width="160" height="100" fill="url(#gBal)"/>${manyStars(80, 50)}
+    <circle cx="30" cy="16" r="7" fill="#fff4d6"/>
+    <rect y="52" width="160" height="26" fill="#1f3a6e"/><path d="M14 56 H46 M22 61 H38 M10 66 H52 M70 70 H130" stroke="#fff4d6" stroke-width=".7" opacity=".45"/>
+    <rect x="96" y="60" width="64" height="12" fill="#2b2150"/><rect x="108" y="18" width="38" height="46" fill="#3a2d63"/>${w}
+    <text x="120" y="38.5" font-size="5">🕺</text><text x="128" y="54.5" font-size="5">🧍</text>
+    <rect y="82" width="160" height="18" fill="#4b3a78"/><rect y="66" width="160" height="2.5" fill="#cbb8f0"/>
+    ${Array.from({ length: 17 }, (_, i) => `<rect x="${i * 10}" y="68" width="1.2" height="14" fill="#cbb8f0"/>`).join('')}</svg>`;
+};
+const streetBG = () => {
+  let city = '';
+  for (let i = 0; i < 12; i++) { const h = 14 + (i * 7) % 16; city += `<rect x="${i * 14}" y="${56 - h}" width="12" height="${h}" fill="#2b2150"/>${wins(i * 14 + 1, 56 - h + 2, 10, h - 4, 2, 3)}`; }
+  return `${SVG_OPEN}${skyDef('gSt', '#1d1745', '#4b3a8a', '#8f6bb5')}<rect width="160" height="100" fill="url(#gSt)"/>${manyStars(50, 40)}
+    <circle cx="132" cy="14" r="7" fill="#fff4d6"/>${city}
+    <rect y="56" width="160" height="44" fill="#3a3560"/><rect y="56" width="160" height="3" fill="#4b4580"/>
+    <rect y="72.2" width="160" height="1.2" fill="#fff7ea" opacity=".9"/>
+    <g fill="#2b2150"><rect x="30" y="30" width="1.6" height="30"/><rect x="100" y="30" width="1.6" height="30"/></g>
+    <circle cx="30.8" cy="30" r="5" fill="#ffe9a8" opacity=".5"/><circle cx="100.8" cy="30" r="5" fill="#ffe9a8" opacity=".5"/></svg>`;
+};
+const bushes = (xs, y) => xs.map((x, i) => `<circle cx="${x}" cy="${y}" r="7" fill="#1f4a3a"/>${[0, 1, 2, 3, 4].map((k) => `<circle cx="${x - 5 + k * 2.6}" cy="${y - 3 + (k % 2) * 4}" r="1.5" fill="${(i + k) % 2 ? '#ff5f8f' : '#e83a63'}"/>`).join('')}`).join('');
+const gardenBG = () => `${SVG_OPEN}${skyDef('gGd', '#0f0b30', '#33297a', '#a56bb5')}<rect width="160" height="100" fill="url(#gGd)"/>${manyStars(110, 55, 0.6)}
+  <circle cx="128" cy="16" r="8" fill="#fff4d6"/><circle cx="128" cy="16" r="13" fill="#fff4d6" opacity=".12"/>
+  <path d="M0 60 Q20 50 40 58 T80 56 T120 58 T160 54 V100 H0Z" fill="#1f3a3a"/>${bushes([10, 24, 136, 150], 64)}
+  <rect y="74" width="160" height="26" fill="#2d2b4e"/>
+  <rect x="48" y="56" width="68" height="7" rx="1" fill="#6a4aa3"/><rect x="52" y="63" width="2" height="12" fill="#4b3a78"/><rect x="110" y="63" width="2" height="12" fill="#4b3a78"/>
+  <rect x="146" y="34" width="1.6" height="40" fill="#2b2150"/><circle cx="146.8" cy="34" r="5" fill="#ffe9a8" opacity=".5"/></svg>`;
+const endBG = () => `${SVG_OPEN}${skyDef('gEn', '#0b0828', '#3a2a80', '#f2b5d4')}<rect width="160" height="100" fill="url(#gEn)"/>${manyStars(160, 58, 0.7)}
+  <circle cx="34" cy="20" r="11" fill="#fff4d6"/><circle cx="34" cy="20" r="19" fill="#fff4d6" opacity=".12"/>
+  <path d="M0 70 Q30 58 60 68 T120 66 T160 62 V100 H0Z" fill="#2a2058"/>
+  <path d="M0 80 Q40 70 80 80 T160 76 V100 H0Z" fill="#1d3a3a"/>${bushes([14, 30, 50, 112, 132, 148], 80)}
+  <rect x="68" y="80" width="24" height="3" rx=".8" fill="#6a4aa3"/><rect x="69" y="83" width="1.2" height="3" fill="#4b3a78"/><rect x="90" y="83" width="1.2" height="3" fill="#4b3a78"/>
+  <rect x="100" y="60" width="1" height="20" fill="#2b2150"/><circle cx="100.5" cy="60" r="3" fill="#ffe9a8" opacity=".5"/></svg>`;
+
+const constel = (pts, lines, letter) => `<svg viewBox="0 0 60 40"><rect width="60" height="40" rx="3" fill="#1d1745"/><path d="${lines}" stroke="#8c75c9" stroke-width=".8" fill="none"/>${pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff7ea"/>`).join('')}</svg><div>${letter}</div>`;
+const STAR_OPTS = [
+  constel([[4, 12], [15, 28], [28, 14], [40, 28], [54, 12]], 'M4 12 L15 28 L28 14 L40 28 L54 12', 'A'),
+  constel([[3, 7], [10, 9], [17, 13], [24, 17], [26, 27], [40, 28], [39, 18]], 'M3 7 L10 9 L17 13 L24 17 L26 27 L40 28 L39 18 L24 17', 'B'),
+  constel([[10, 6], [46, 6], [14, 20], [28, 20], [42, 20], [12, 35], [44, 35]], 'M14 20 L42 20 M10 6 L14 20 L12 35 M46 6 L42 20 L44 35', 'C'),
+  constel([[30, 4], [30, 36], [14, 18], [46, 22], [34, 28]], 'M30 4 L30 36 M14 18 L46 22', 'D'),
+];
+function hearts(n = 14) {
+  if (replaying) return;
+  for (let i = 0; i < n; i++) {
+    const h = document.createElement('span'); h.className = 'heartfly'; h.textContent = ['💗', '💜', '💖'][i % 3];
+    h.style.left = (15 + Math.random() * 70) + '%'; h.style.animationDelay = (Math.random() * 1.6).toFixed(1) + 's';
+    stage.appendChild(h); setTimeout(() => h.remove(), 4500);
+  }
 }
 
 /* ---------- 4. SCENES ---------- */
@@ -1032,22 +1089,24 @@ const gymBG = () => {
 };
 const bellHTML = '<div class="bell"><i class="bpl"></i><i class="bpl s"></i><b class="br"></b><i class="bpl s"></i><i class="bpl"></i></div>';
 
-// Keep the dumbbells level for 10 seconds. Returns 1 (success) or 0 (crushed).
-function formGame() {
+// Generic "keep it balanced" game: it drifts, the player nudges it back. Returns 1 (held on) or 0 (lost it).
+function wobble(title, labels, secs, apply) {
   if (replayQ.length) { const a = replayQ.shift(); answers.push(a); return Promise.resolve(a); }
   endReplay();
   const t = token;
   return new Promise((res) => {
     dlg.className = 'hidden'; dlg.onclick = null;
-    const bell = $('.bell');
     const pad = document.createElement('div'); pad.className = 'formpad';
-    pad.innerHTML = '<div class="fp-h">Keep the dumbbells level for 10 seconds! (← → keys work too)</div><div class="gauge"><i></i></div><div class="timer"><div></div></div><div class="fp-b"><button data-d="-1">↶ Rotate left</button><button data-d="1">Rotate right ↷</button></div>';
+    pad.innerHTML = `<div class="fp-h">${title}</div><div class="gauge"><i></i></div><div class="timer"><div></div></div><div class="fp-b"><button data-d="-1">${labels[0]}</button><button data-d="1">${labels[1]}</button></div>`;
     stage.appendChild(pad);
     const mark = pad.querySelector('.gauge i'), bar = pad.querySelector('.timer div');
     let tilt = (Math.random() < 0.5 ? -1 : 1) * 25, v = 0, done = false;
     const t0 = Date.now();
     const nudge = (d) => { tilt += d * 20; };
-    const key = (e) => { if (e.key === 'ArrowLeft') nudge(-1); if (e.key === 'ArrowRight') nudge(1); };
+    const key = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') nudge(-1);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') nudge(1);
+    };
     document.addEventListener('keydown', key);
     pad.querySelectorAll('button').forEach((b) => { b.onclick = () => nudge(+b.dataset.d); });
     const end = (win) => {
@@ -1060,13 +1119,14 @@ function formGame() {
       const el = (Date.now() - t0) / 1000;
       v = v * 0.96 + (Math.random() - 0.5) * (1.1 + el * 0.12) + Math.sign(tilt) * 0.12;
       tilt += v;
-      bell.style.transform = `rotate(${tilt * 0.35}deg)`;
+      apply(tilt);
       mark.style.left = (50 + Math.max(-100, Math.min(100, tilt)) / 2) + '%';
-      bar.style.width = Math.max(0, 100 - el * 10) + '%';
-      if (Math.abs(tilt) >= 100) end(false); else if (el >= 10) end(true);
+      bar.style.width = Math.max(0, 100 - el * (100 / secs)) + '%';
+      if (Math.abs(tilt) >= 100) end(false); else if (el >= secs) end(true);
     }, 50);
   });
 }
+const formGame = () => wobble('Keep the dumbbells level for 10 seconds! (← → keys work too)', ['↶ Rotate left', 'Rotate right ↷'], 10, (tilt) => { $('.bell').style.transform = `rotate(${tilt * 0.35}deg)`; });
 
 scenes.gym = async () => {
   hud.classList.remove('hidden');
@@ -1200,7 +1260,219 @@ scenes.dorm = async () => {
   mood('geli', 'happy'); pop('geli', '💜'); gain(3);
   await G('Yayyyy!');
   await fadeOut();
-  goto('tbc');
+  goto('balcony');
+};
+
+/* LEVEL 9: the balcony */
+scenes.balcony = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 9 · Ocean Balcony');
+  stage.innerHTML = balconyBG() + fireflies();
+  addActor('geli', { ...GELI, mood: 'happy' }, { x: 30, y: 16, w: 8.5 });
+  addActor('cheese', { ...CHEESE, mood: 'smile' }, { x: 58, y: 16, w: 8.5 });
+  await wait(900);
+
+  await N("📍 Geli's balcony. The ocean glitters under a sky full of stars.");
+  await N('Across from the balcony stands a tall apartment building, its windows glowing.');
+  await G('Hey Cheesecake. Do you think the people in that building are shirtless right now?');
+  mood('cheese', 'shock'); pop('cheese', '👀');
+  await C('...Why are you asking me that?!');
+  await G('Science! It is late, it is warm, and somebody over there is 100% shirtless.');
+  mood('cheese', 'smile');
+  await C('Okay. Third floor, second window. Shirtless. I am calling it.');
+  mood('geli', 'happy'); pop('geli', '😂');
+  await G('Nope! That guy is wearing a turtleneck. You owe me!');
+  await C('A TURTLENECK?! In this weather?!');
+  await G('A very confident turtleneck.');
+
+  mood('geli', 'shy'); mood('cheese', 'happy');
+  mind(true, 'what do I do?!', ['should I ask him?', 'boyfriend??', 'now or later?', "what's a good spot", 'hmm 💗', 'I like him', 'what do I do', '💗💗', 'ask him out??', 'help']);
+  await G('(Hmm... I like it... I kinda like him...)');
+  await G('(What do I do?! What do I do?! Maybe I ask him to be my boyfriend?)');
+  await G("(Should I ask now? Or later? What's a good spot?! Ahhh!)");
+  mind(false); gain(2); mood('geli', 'happy');
+  await N('The two head back inside to the kitchen.');
+  await fadeOut();
+  goto('kitchen');
+};
+
+/* LEVEL 9b: a little shot */
+scenes.kitchen = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 9 · A Little Shot');
+  stage.innerHTML = dormBG() + '<div class="fridge"><i></i></div>';
+  addActor('geli', { ...GELI, mood: 'happy' }, { x: 26, w: 8.5 });
+  addActor('cheese', CHEESE, { x: 62, w: 8.5 });
+  await wait(800);
+
+  await N('📍 Back inside, in the kitchen.');
+  await N('Geli opens the fridge and takes out a bottle of white wine.');
+  stage.insertAdjacentHTML('beforeend', '<div class="bottle"></div><div class="glass g1"><i class="wine"></i></div><div class="glass g2"><i class="wine"></i></div>');
+  await G('Hey, you wanna take a shot with me?');
+  mood('cheese', 'shock');
+  await C("Whaaaa? Are you sureee?? ...But I'll take a shot!");
+
+  const c = await choose('What does Cheesecake do?', ['Take one shot 🥃', 'Drink the whole bottle 🍾', 'Screw the shots, I wanna suck on ur boobies 😏']);
+  if (c === 1) {
+    mood('cheese', 'happy');
+    await N('Cheesecake grabs the bottle and chugs the WHOLE thing...');
+    await C('...hehehe. Why is the kitchen spinning?');
+    await gameOver({ text: 'You are too drunk to do anything!', effect: 'drunk' });
+  }
+  if (c === 2) {
+    mood('geli', 'ew'); mood('cheese', 'shock');
+    await G('...I am calling the cops.');
+    await gameOver({ text: 'Geli called the cops on you and is very disappointed.', effect: 'police' });
+  }
+
+  document.querySelectorAll('.glass').forEach((g) => g.classList.add('empty'));
+  mood('cheese', 'ew'); pop('cheese', '🥴');
+  await N('They both take a shot. The wine slides down...');
+  actors.geli.o.skin = TIPSY.skin; mood('geli', 'shy'); gain(3);
+  await G('Whoa... that was strong. Is it hot in here, or is it just me?');
+  mood('geli', 'happy');
+  await G('Hey, wanna go to the rose garden with me? The stars are so pretty and bright over there!');
+  mood('cheese', 'happy');
+  await C('Sure! Let me grab my jacket.');
+  await fadeOut();
+  goto('street');
+};
+
+/* LEVEL 10: walk the line (mini-game) */
+scenes.street = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 10 · Walk the Line');
+  stage.innerHTML = streetBG();
+  addActor('geli', { ...TIPSY, mood: 'happy' }, { x: 14, y: 26, w: 8.5 });
+  addActor('cheese', { ...CHEESE, mood: 'shock' }, { x: 0, y: 26, w: 8.5 });
+  const g = actors.geli.el, ce = actors.cheese.el;
+  await wait(900);
+
+  await N('📍 Outside. Cool night air, glowing streetlights... and one very happy Geli.');
+  g.classList.add('hop');
+  await N('Geli skips and hops down the path.');
+  g.classList.remove('hop'); g.classList.add('twirl');
+  await N('Then she starts to spin.');
+  await C('OMG. Geli, you are SO not okay!');
+  g.classList.remove('twirl');
+  await G("Nah, I'm perfectly fine! I can still walk in straight lines!!");
+  mood('cheese', 'smile');
+  await C('Prove it. I will help keep you on the line!');
+
+  g.classList.add('sway');
+  g.style.transition = 'left 10s linear, bottom .08s linear'; ce.style.transition = 'left 10s linear';
+  g.style.left = '72%'; ce.style.left = '56%';
+  const ok = await wobble('Help Geli walk the line! Keep her feet on it for 10 seconds.', ['⬇ Nudge down', '⬆ Nudge up'], 10, (tilt) => { g.style.bottom = (26 + tilt * 0.14) + '%'; });
+  g.classList.remove('sway'); g.style.transition = ''; ce.style.transition = ''; g.style.bottom = '26%';
+  gain(3);
+  if (ok) {
+    mood('geli', 'happy');
+    await G('See?? Perfectly fine! Straight lines all the way!');
+    await C('...Barely.');
+  } else {
+    mood('geli', 'shy'); mood('cheese', 'shock');
+    await N('Geli veers right off the line... and Cheesecake catches her just in time!');
+    await C('Gotcha! Okay, you are definitely NOT fine.');
+    await G('Maybe a teeny tiny bit...');
+  }
+  await G('Come on! The rose garden is just ahead!');
+  await fadeOut();
+  goto('garden');
+};
+
+/* LEVEL 10b: rose garden */
+scenes.garden = async () => {
+  hud.classList.remove('hidden');
+  setLevel('Level 10 · Rose Garden');
+  stage.innerHTML = gardenBG() + fireflies();
+  addActor('geli', { ...TIPSY, mood: 'happy' }, { x: 33, y: 24, w: 9 });
+  addActor('cheese', { ...CHEESE, mood: 'smile' }, { x: 55, y: 24, w: 9 });
+  stage.insertAdjacentHTML('beforeend', '<div class="bench"></div><span class="rose" style="left:6%">🌹</span><span class="rose" style="left:88%">🌹</span><span class="rose" style="left:14%;bottom:12%">🌹</span><span class="rose" style="left:80%;bottom:12%">🌹</span>');
+  await wait(900);
+
+  await N('📍 The rose garden. Roses everywhere, stars everywhere, and one quiet bench.');
+  await N('They sit down side by side and gaze up at the sky.');
+  await G('Look at all those stars! See the W-shaped one? That is Cassiopeia!');
+  pop('geli', '⭐');
+  await C('Wow... how do you even know that?!');
+  await G('And the brightest one over there is Polaris, the North Star.');
+  mood('cheese', 'happy');
+  await C('You are so smart.');
+  await G('Okay, quiz time! Cheesecake, which one is the Big Dipper?');
+
+  const q = await choose('Which one is the Big Dipper?', STAR_OPTS, { card: true });
+  if (q === 1) {
+    mood('geli', 'happy'); mood('cheese', 'happy'); gain(2); pop('geli', '🎉');
+    await G('YESSS! That is the Big Dipper! You are so good at this!');
+  } else {
+    mood('geli', 'smile'); gain(1);
+    await G('Not quite! The Big Dipper is shaped like a ladle: four stars make the bowl and three make the curved handle.');
+    await G('Follow the two stars on the outer edge of the bowl, and they point right to Polaris, the North Star!');
+    mood('cheese', 'happy');
+    await C('Ohhh! Now I see it!');
+  }
+
+  await N('Geli goes quiet. Then she turns to Cheesecake...');
+  mood('geli', 'shy');
+  await G('I... i i i got got something to tell you...');
+  await G('Actually... nvm.');
+  await G('Hey, I wanna say something...');
+  await G('Acccutallyyy nvm nvm!!');
+  mood('cheese', 'shock');
+  await C("(Wait... is she trying to...?! This is THE moment. Don't mess it up!)");
+
+  const opts = ['Hey... this is so romantic right now...', 'You are so smart and awesome and wonderful and hot, can you be my girlfriend?', 'Holy moly, I see raccoons! 🦝'];
+  const c = await choose('What does Cheesecake say?', opts);
+  mood('cheese', 'smile');
+  await C(opts[c]);
+  if (c === 1) {
+    mood('geli', 'sad');
+    await gameOver({ text: "Geli wished you said it, but that's not how the story goes...", effect: 'reject' });
+  }
+  if (c === 2) {
+    pop('cheese', '🦝'); mood('geli', 'shock');
+    await gameOver({ text: 'Geli fainted on the spot because she was too embarrassed to say it.', effect: 'faint' });
+  }
+
+  mood('geli', 'shy'); pop('geli', '💗');
+  await G('Y-yeah... it really is...');
+  await N('Geli takes a deep breath and finally finds her courage.');
+  await G('Hey... I think I like you.');
+  mood('cheese', 'happy'); pop('cheese', '💜');
+  await C('Me too. So... do you wanna be my girlfriend?');
+  pop('geli', '😳');
+  await G('YES!!');
+  moveTo('cheese', 45);
+  await wait(1700);
+  mood('cheese', 'happy'); mood('geli', 'shy');
+  stage.insertAdjacentHTML('beforeend', '<div class="moonglow"></div>');
+  hearts();
+  gain(100 - progress);
+  await N('Cheesecake hugs Geli under the moonlight. 💜');
+  await wait(1200);
+  await fadeOut();
+  goto('ending');
+};
+
+/* FINAL: zoom out to the night sky */
+scenes.ending = async () => {
+  hud.classList.remove('hidden');
+  setLevel('1st Anniversary 💜'); setProgress(100);
+  stage.innerHTML = endBG() + fireflies() + '<span class="shoot"></span>';
+  addActor('geli', { ...TIPSY, mood: 'shy' }, { x: 47, y: 18.5, w: 3.2 });
+  addActor('cheese', { ...CHEESE, mood: 'happy' }, { x: 49.6, y: 18.5, w: 3.2 });
+  stage.style.transformOrigin = '50% 80%'; stage.style.transform = 'scale(3.6)';
+  await wait(1500);
+  stage.style.transition = 'transform 7s ease-in-out'; stage.style.transform = 'scale(1)';
+  hearts(10);
+  await wait(7800);
+  overlay.className = 'show quiz';
+  overlay.innerHTML = `<div class="go-card"><h2 style="color:#6a4aa3">YOU DID IT! 💜</h2>
+    <p style="font-size:1.1em;margin:.5em 0">Happy 1st Anniversary, Cheesecake.</p>
+    <p style="font-size:.95em">From a hot dog line to a rose garden under the stars... thank you for every all-nighter, every purple soup and every wobbly walk home. You are my favourite person, and I would choose you again in every level.</p>
+    <p style="font-size:.95em;margin-bottom:1em">Here's to us, and a thousand more starry nights. 💜</p>
+    <button id="again" class="big">Play again</button></div>`;
+  $('#again').onclick = () => { Object.keys(checkpoints).forEach((k) => delete checkpoints[k]); progress = 0; startScene('title'); };
 };
 
 /* END OF WHAT WE'VE BUILT SO FAR */
@@ -1217,8 +1489,8 @@ scenes.tbc = async () => {
 };
 
 /* ---------- START ---------- */
-// Tip for testing: add #lab, #stairs, #call, #invite, #costco, #exam, #hall, #friends, #gym, #dorm or #tbc to the web address to jump straight to that scene.
-const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, exam: 65, hall: 69, friends: 73, gym: 73, dorm: 79, tbc: 86 };
+// Tip for testing: add #lab, #stairs, #call, #invite, #costco, #exam, #hall, #friends, #gym, #dorm, #balcony, #kitchen, #street, #garden or #ending to the web address to jump straight to that scene.
+const startAt = { bbq: 0, lab: 8, stairs: 24, call: 32, invite: 48, costco: 56, exam: 65, hall: 69, friends: 73, gym: 73, dorm: 79, balcony: 86, kitchen: 88, street: 91, garden: 94, ending: 100, tbc: 100 };
 const hash = location.hash.slice(1);
 if (hash && scenes[hash] && hash !== 'title') {
   progress = startAt[hash] || 0;
