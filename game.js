@@ -222,7 +222,7 @@ function person(o) {
     wolf: `<path d="M22 56 C16 6 84 6 78 56 L76 51 Q50 46 24 51 Z" fill="${hair}"/>
            <path d="M25 38 L34 42 L30 77 Z M75 38 L66 42 L70 77 Z" fill="${hair}"/>`,
     bowl: `<path d="M21 62 C13 6 87 6 79 62 L74 56 Q70 50 64 49 Q57 51 50 48 Q43 51 36 49 Q30 50 26 56 Z" fill="${hair}"/>
-           <path d="M21 62 L22 72 L29 62 Z M79 62 L78 72 L71 62 Z" fill="${hair}"/>`,
+           <path d="M22 56 L31 57 L26 70 Z M78 56 L69 57 L74 70 Z" fill="${hair}"/>`,
     short: `<path d="M21 54 C13 8 87 8 79 54 C73 42 62 36 50 36 C38 36 27 42 21 54 Z" fill="${hair}"/>
             <path d="M36 25 L40 13 L48 23 Z M54 22 L63 12 L65 27 Z" fill="${hair}"/>`,
     long: `<path d="M22 52 C16 6 84 6 78 52 L74 40 Q50 30 26 40 Z" fill="${hair}"/>
@@ -249,6 +249,9 @@ function person(o) {
 
   const blush = o.blush ? '<circle cx="34" cy="64" r="4" fill="#ff9db8" opacity=".5"/><circle cx="66" cy="64" r="4" fill="#ff9db8" opacity=".5"/>' : '';
 
+  // ears (for the bowl cut they are drawn on top of the hair, so the hair sits behind them)
+  const ears = `<circle cx="26" cy="54" r="4.5" fill="${skin}"/><circle cx="74" cy="54" r="4.5" fill="${skin}"/>`;
+
   // Geli's beauty mark: just under her left eye (the right one as we look at her), toward the side
   const mole = o.mole ? '<circle cx="65" cy="62.5" r="1.4" fill="#5a3326"/>' : '';
 
@@ -264,9 +267,10 @@ function person(o) {
     <path d="M73 92 Q87 100 85 124" stroke="${shirt}" stroke-width="11" stroke-linecap="round" fill="none"/>
     <circle cx="15" cy="127" r="5.5" fill="${skin}"/><circle cx="85" cy="127" r="5.5" fill="${skin}"/>
     <rect x="44" y="70" width="12" height="14" fill="${skin}"/>
-    <circle cx="26" cy="54" r="4.5" fill="${skin}"/><circle cx="74" cy="54" r="4.5" fill="${skin}"/>
+    ${o.style === 'bowl' ? '' : ears}
     <ellipse cx="50" cy="50" rx="24" ry="25" fill="${skin}"/>
     ${blush}${mole}${eyes}${mouth}${hairFront}
+    ${o.style === 'bowl' ? ears : ''}
   </svg>`;
 }
 
