@@ -165,3 +165,76 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 @media (orientation:portrait) and (max-width:700px){
   #rotate{display:flex;position:fixed;inset:0;z-index:99;background:#1f1633;color:#fff;align-items:center;justify-content:center;text-align:center;font-size:22px;padding:2em}
 }
+
+/* ===== v2 additions ===== */
+/* game-over cards stay perfectly still so "Try again" is easy to click */
+.go-card button.big{animation:none}
+.snail{left:12%;animation:none}
+/* "Try again" fast-forward */
+#game.replay .actor,#game.replay .prop,#game.replay #fade,#game.replay .sched-wrap,#game.replay .sched-wrap .card{transition:none!important}
+
+/* split-screen bedrooms */
+.half{position:absolute;top:0;bottom:0;width:50%;overflow:hidden}
+.half.l{left:0}.half.r{right:0}
+.dawn{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,160,110,.95),rgba(255,220,160,.35));opacity:0;pointer-events:none}
+.split-line{position:absolute;left:50%;top:0;bottom:0;width:.35em;transform:translateX(-50%);background:var(--cream);z-index:3}
+.desk{position:absolute;left:2%;width:46%;bottom:0;height:40%;background:linear-gradient(#a98be0 0 7%,#6f539f 7%);border-top:.25em solid #cbb8f0}
+.laptop{position:absolute;left:18.5%;width:13%;bottom:40%;height:9%;background:#d9cfee;border:.15em solid #8c75c9;border-radius:.5em .5em 0 0;display:flex;align-items:center;justify-content:center}
+.laptop i{width:1.4em;height:1.4em;border-radius:50%;background:#fff;box-shadow:0 0 1.2em .5em rgba(160,200,255,.9)}
+.bed{position:absolute;left:52%;width:46%;bottom:0;height:36%;background:linear-gradient(#8fa0e8 0 18%,#6f80cf 18%);border-top:.3em solid #cbd6ff;border-radius:1.5em 1.5em 0 0}
+.pillow{position:absolute;left:6%;top:-1.3em;width:6em;height:2.4em;border-radius:1em;background:var(--cream)}
+.phone{position:absolute;width:2.6em;height:4.4em;background:#1a1230;border:.15em solid #cbb8f0;border-radius:.5em;overflow:hidden}
+.cphone{left:72.9%;bottom:35%}.gphone{left:22.9%;bottom:40%}
+.phone.ring{animation:buzz .15s linear infinite}
+@keyframes buzz{0%,100%{transform:translateX(-.08em) rotate(-3deg)}50%{transform:translateX(.08em) rotate(3deg)}}
+.scr{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center}
+.scr b{font-size:1.2em}.scr span{font-size:.55em;margin-top:.2em}
+.scr.feed{background:repeating-linear-gradient(#ffd1e6 0 1em,#fff 1em 1.15em,#c9b8ff 1.15em 2.1em,#fff 2.1em 2.25em);background-size:100% 2.25em;animation:scroll 1s linear infinite}
+@keyframes scroll{to{background-position:0 2.25em}}
+.scr.ring{background:linear-gradient(#ff8dbb,#ff5f9f)}
+.scr.talk{background:linear-gradient(#6bbf8e,#3d9a6a)}
+.scr.off{background:#14102a}
+.callbox{position:absolute;left:2%;top:40%;width:14%;z-index:4;text-align:center;background:var(--cream);border:.14em solid var(--plum2);border-radius:1em;padding:.2em .5em;line-height:1.15}
+.dots::after{content:'';animation:dots 1.2s steps(1) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+/* clock */
+#clock{position:absolute;left:50%;top:11%;transform:translateX(-50%);width:7em;z-index:5;text-align:center}
+#clock svg{display:block;width:100%;filter:drop-shadow(0 .2em .4em rgba(0,0,0,.4))}
+#hh,#mh{transform-box:view-box;transform-origin:50px 50px}
+#clock-time{margin-top:.2em;background:var(--cream);border:.12em solid var(--plum2);border-radius:1em;font-size:1.2em}
+
+/* sleepy Z's */
+.zzz{position:absolute;left:46%;top:38%;z-index:16;color:#fff;font-size:3.4em}
+.zzz span{position:absolute;opacity:0;animation:zfloat 2.4s ease-out infinite}
+.zzz span:nth-child(2){animation-delay:.8s;left:.9em}.zzz span:nth-child(3){animation-delay:1.6s;left:1.8em}
+@keyframes zfloat{0%{opacity:0;transform:translate(0,0) scale(.5)}30%{opacity:1}100%{opacity:0;transform:translate(1em,-3.5em) scale(1.4)}}
+
+/* text chat */
+.chat{position:absolute;left:35%;width:30%;top:14%;bottom:28%;z-index:4;background:var(--cream);border:.15em solid var(--plum2);border-radius:1.2em;display:flex;flex-direction:column;overflow:hidden}
+.chat-h{background:var(--plum2);color:#fff;padding:.3em .8em;font-size:1.1em}
+.chat-b{flex:1;padding:.6em;display:flex;flex-direction:column;justify-content:flex-end;gap:.4em;overflow:hidden}
+.bub{max-width:88%;padding:.3em .7em;border-radius:1em;font-size:1.05em;line-height:1.15;animation:bubin .3s ease}
+.bub.cheese{align-self:flex-start;background:#d9e3ff}.bub.geli{align-self:flex-end;background:#ffd1e6}
+.bub.typing{opacity:.7}
+@keyframes bubin{from{opacity:0;transform:translateY(.5em) scale(.9)}}
+
+/* costco */
+.prop{position:absolute;font-size:6em;line-height:1;transition:left 1.6s ease-in-out;z-index:2}
+.cargo{position:absolute;left:12%;top:-.15em;font-size:.4em;white-space:nowrap}
+.toss{position:absolute;top:36%;font-size:2.2em;z-index:3;animation:toss 1s ease-in forwards;pointer-events:none}
+@keyframes toss{0%{opacity:0;transform:translateY(-2em) scale(.6)}25%{opacity:1}100%{opacity:1;transform:translateY(9em) scale(1)}}
+
+/* v3: girls game-over + interactive shelf */
+.go-trio{display:flex;align-items:flex-end;justify-content:center}
+.go-trio .go-char{width:5em}
+.go-trio .side{margin:0 -.9em;transform-origin:bottom center}
+.go-trio .side.l{transform:rotate(9deg)}.go-trio .side.r{transform:rotate(-9deg)}
+.kiss{position:absolute;top:38%;font-size:1.4em}
+.kiss.k1{left:calc(50% - 2.4em)}.kiss.k2{left:calc(50% + 1em)}
+.shelf{position:absolute;left:8%;right:8%;top:13%;z-index:7;background:rgba(255,247,234,.96);border:.15em solid var(--plum2);border-radius:1em;padding:.4em .8em .7em;text-align:center}
+.shelf-h{font-size:1.25em;margin-bottom:.3em}
+.shelf-g{display:flex;flex-wrap:wrap;justify-content:center;gap:.5em}
+.shelf-g button{width:8em;font:inherit;color:var(--ink);background:#fff;border:.1em solid var(--plum2);border-radius:.7em;padding:.25em .2em;cursor:pointer;line-height:1.1}
+.shelf-g button span{display:block;font-size:2em}
+.shelf-g button:hover{background:var(--lav)}
