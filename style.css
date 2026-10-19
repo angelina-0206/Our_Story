@@ -282,3 +282,27 @@ pre.code{background:#2b2147;color:#f4e9ff;border-radius:.6em;padding:.6em .9em;f
 @keyframes dropin{0%{opacity:0;transform:translateY(-2em)}25%{opacity:1}100%{opacity:0;transform:translateY(11em) scale(.5)}}
 .dtable{position:absolute;left:12%;right:12%;bottom:0;height:34%;z-index:2;background:linear-gradient(#e8c9a0 0 8%,#b98a5a 8%);border-top:.25em solid #f3dcc0}
 .bowl{position:absolute;top:-2.3em;font-size:2.6em;filter:hue-rotate(250deg) saturate(2)}
+
+/* v5: gym */
+.actor .bell{position:absolute;left:-30%;top:-1.8em;width:160%;display:flex;align-items:center;transform-origin:center}
+.bpl{width:.8em;height:3em;background:#4b3a78;border-radius:.3em;flex:none}
+.bpl.s{height:2.1em;width:.6em;background:#6a4aa3}
+.br{flex:1;height:.35em;background:#cbb8f0}
+.actor.refl{opacity:.6;filter:saturate(.8);pointer-events:none}
+.formpad{position:absolute;left:18%;right:18%;bottom:3%;z-index:7;background:rgba(255,247,234,.96);border:.15em solid var(--plum2);border-radius:1em;padding:.5em .9em .7em;text-align:center}
+.fp-h{font-size:1.2em}
+.gauge{position:relative;height:.9em;margin:.6em 0 .5em;border-radius:1em;background:linear-gradient(90deg,#ff9cb0 0 20%,#ffe9a8 20% 35%,#a8e6b8 35% 65%,#ffe9a8 65% 80%,#ff9cb0 80%)}
+.gauge i{position:absolute;top:-.25em;left:50%;width:.35em;height:1.4em;margin-left:-.17em;background:var(--plum);border-radius:.2em}
+.fp-b{display:flex;gap:.6em;margin-top:.4em}
+.fp-b button{flex:1;font:inherit;font-size:1.3em;color:#fff;background:linear-gradient(180deg,#ff8dbb,#ff5f9f);border:.1em solid #fff;border-radius:1em;padding:.2em;cursor:pointer;box-shadow:0 .15em 0 #c53d78}
+.fp-b button:active{transform:translateY(.1em);box-shadow:0 .05em 0 #c53d78}
+
+/* gym game-over art */
+.go-char.flat{transform:scaleY(.3);transform-origin:bottom center}
+.cbell{position:absolute;left:50%;bottom:3em;transform:translateX(-50%);width:12em;display:flex;align-items:center}
+.handball{position:relative;width:6em;display:flex;justify-content:center;align-items:flex-end}
+.handball span{font-size:5em;line-height:1}
+.handball i{position:absolute;left:50%;top:34%;width:2.4em;height:2.4em;margin-left:-1.2em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9b6ff,#7a3fc4);box-shadow:0 0 .6em rgba(122,63,196,.6)}
+.siren.s2{left:auto;right:18%}
+.cop.c2{right:auto;left:16%}
+#overlay.fx-cop .go-card{animation:sirenglow .6s steps(2) infinite}
