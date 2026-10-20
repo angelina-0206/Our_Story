@@ -624,8 +624,8 @@ scenes.title = async () => {
     <div class="title-card">
       <div class="heart">💜</div>
       <h1>Geli &amp; Cheesecake</h1>
-      <h2>The Dating Game</h2>
-      <p class="q">Cheesecake... are you ready to try to dating me again?</p>
+      <h2>Will Geli fall for you again??</h2>
+      <p class="q">Hey shawty... are you ready to try to dating me again?</p>
       <button id="start" class="big">Start 💜</button>
     </div>`);
   await new Promise((res) => { $('#start').onclick = res; });
@@ -667,9 +667,9 @@ scenes.bbq = async () => {
   pop('cheese', '🌭');
   await N('Geli joins the line for hot dogs... and just happens to end up right behind two people.');
   moveTo('friend', 68); moveTo('cheese', 54); moveTo('geli', 38);
-  await G("(Okay, hot dog line. Hot dog line. ...Why is that guy's hair so messy?)");
+  await G("(OMG free hotdog! This day is so awesome hahaha! Lemme line up here)");
   pop('geli', '💬');
-  await G("Hi! I'm Angelina, nice to meet you guy! What's your name?");
+  await G("Hi! I'm Angelina, nice to meet you guys! What's your name?");
   mood('cheese', 'shock'); pop('cheese', '❗');
   await C("Oh! Uh... I'm Cheesecake.");
   await F('(whispering) Bro. Is that rizz??.');
@@ -682,7 +682,7 @@ scenes.bbq = async () => {
     await C('CPEN!');
     mood('geli', 'ew');
     await G('Ew... stinky. Have you showered this month?');
-    await gameOver({ text: 'Cheesecake was defeated by a single sentence. The flies have moved in.', effect: 'flies' });
+    await gameOver({ text: 'Cheesecake is a stinky cpener that have not showered in months', effect: 'flies' });
   }
 
   await C('Elec!');
@@ -696,7 +696,7 @@ scenes.bbq = async () => {
   mood('cheese', 'happy');
   await C('S-see you in class!');
   moveTo('geli', -16);
-  await F('Smooth, bro. That is a hot girl damnn.');
+  await F("That's rizz bro, what a hot girl damnn!");
   await fadeOut();
   goto('lab');
 };
@@ -713,9 +713,9 @@ scenes.lab = async () => {
   addActor('cheese', CHEESE, { x: -14, y: 22, w: 9.5 });
   await wait(900);
 
-  await N('📍 CPSC lab. Today is a partner assignment. Everyone is pairing up. FAST.');
+  await N('📍 CPSC lab. Today is a partner assignment. Everyone is pairing up.');
   await walk('cheese', 2, 22);
-  await C('(Okay. Okay okay okay. Pick a partner. Be normal.)');
+  await C('(Okay. Okay okay okay. I need a lab partner... Oh this cute girl frpm BBQ is here!)');
 
   const who = await pick('Who should Cheesecake ask to be his lab partner? (Click a person!)', ['guy1', 'girl1', 'guy2', 'geli']);
   const px = parseFloat(actors[who].el.style.left);
@@ -732,7 +732,7 @@ scenes.lab = async () => {
     await C('Hey... wanna be lab partners?');
     mood('girl1', 'ew');
     await say('Girl 1', "Sorry, I'm working with my bf");
-    await gameOver({ text: 'Girl 1 politely refused. Cheesecake is defeated.', effect: 'reject' });
+    await gameOver({ text: 'Girl 1 politely refused. Cheesecake is alone.', effect: 'reject' });
   }
 
   // chose Geli
@@ -777,7 +777,7 @@ scenes.stairs = async () => {
   const c = await choose('What does Cheesecake say?', [
     '"Hey girl, I think you\'re hot. Wanna grab a drink tonight?" 😉',
     '"So... what are your hobbies?"',
-    '"Boobies boobies, lemme cop a feel."',
+    '"Boobies boobies, lemme cop a feel heheh."',
   ]);
 
   if (c === 0) {
@@ -830,9 +830,9 @@ scenes.call = async () => {
   $('.callbox').innerHTML = '📞 Connected 💜';
   mood('cheese', 'smile');
   await C("Hello? ...Hey Geli. What's up?");
-  await G('Help me with this ELEC assignment! It is due soon and I am so stressed. I really wanna finish it before tomorrow... can you help??');
+  await G('Hey um can you help me with this ELEC assignment! It is due soon and I am so stressed. I really wanna finish it before tomorrow... can you help??');
   mood('cheese', 'happy');
-  await C('Yeah, for sure.');
+  await C('Yeah, for sure!');
   await N('And so the all-nighter begins...');
 
   async function circuitQ(intro, prompt, code, opts, right) {
@@ -873,7 +873,7 @@ scenes.call = async () => {
   $('.callbox').remove();
   await N('Click. Geli hangs up the phone.');
   mood('geli', 'shy'); pop('geli', '💜'); mood('cheese', 'sleep'); gain(4);
-  await G("(...Wow. That's the first time I've ever called someone for that long.)");
+  await G("(...Wow. That's the first time I've ever called someone for that long... Do I like him?? Does he like me?? Ehh too early to know.)");
   await N('Geli drifts off to sleep at her desk... 😴');
   dlg.className = 'hidden';
   await wait(800);
@@ -894,9 +894,9 @@ scenes.invite = async () => {
   showChat();
   await wait(900);
 
-  await N('📍 Saturday afternoon. Geli finally woke up. Cheesecake has been staring at an empty chat box for 20 minutes.');
+  await N("📍Cheesecake has been staring at Geli's chat box for 20 minutes.");
   mood('cheese', 'shock');
-  await C('(Okay. Invite her out. Something fun. Something NORMAL.)');
+  await C('(Okay. Invite her out. Something fun. No, something NORMAL.)');
 
   const opts = ['Yo wanna go out clubbing and hit on some hot girls? 🪩', 'Wanna go on a Costco run together? 🛒', "Let's hang out in your bed 🤤🤤"];
   const c = await choose('What does Cheesecake text Geli?', opts);
@@ -911,7 +911,7 @@ scenes.invite = async () => {
   if (c === 0) {
     msg('geli', 'omg ur right... hot girls are EVERYWHERE 👀 thx for the idea!');
     mood('geli', 'happy');
-    await wait(1800);
+    await wait(2000);
     await gameOver({ text: 'Geli discovered hot girls and decided to date girls instead.', effect: 'girls' });
   }
   if (c === 2) {
@@ -1027,16 +1027,16 @@ scenes.hall = async () => {
   addActor('cheese', { ...CHEESE, mood: 'happy' }, { x: -30, w: 8.5 });
   await wait(700);
 
-  await N('📍 Outside the exam room. Two very tired, very happy engineers.');
+  await N('📍 Outside the exam room. Two very tired, but very happy engineers.');
   moveTo('geli', 36); moveTo('cheese', 50);
   await wait(1800);
   await C('Ahh... that exam was kinda challenging.');
-  await G('Right?! My brain is soup. But we did it!');
+  await G('Right?! My brain is fried. But we did it!');
   await C("I'm so glad we both passed!");
   mood('geli', 'stress'); mind();
-  await G("(HOLY MOLY. I really wanna hug Cheesecake... but I can't, we're just friends! What do I do?! WHAT DO I DO?!)");
+  await G("(HOLY MOLY. ALL I WANNA DO IS TO HUG CHEESECAKE... but I can't, we're just friends! What do I do?! WHAT DO I DO?!)");
   await G('(All I can think about is hugging Cheesecake!!)');
-  await C('Hey Geli, what are your plans for today?');
+  await C('Hey Geli, what are your plans for the rest of the day?');
   mind(false); mood('geli', 'shock');
   await G('Uhh... I... am not so sure...');
   mood('cheese', 'smile');
@@ -1044,7 +1044,7 @@ scenes.hall = async () => {
   mood('geli', 'happy'); pop('geli', '💜');
   await G('Yes!! I mean... yeah, sure! Let me go change!');
   moveTo('geli', -16); gain(4);
-  await N('Geli hurries off to change... alone... heart pounding. 💓');
+  await N('Geli hurries off to change... heart pounding. 💓');
   await fadeOut();
   goto('friends');
 };
@@ -1064,13 +1064,13 @@ scenes.friends = async () => {
   await C('Kinda challenging... but I think I passed. Geli and I both did.');
   mood('cheese', 'shy');
   await say('Guy 1', 'Wait. "Geli and I." And where is Geli right now?');
-  await C("She's changing. We're going to the gym.");
-  await F('Bro. After the exam. With the BBQ girl. To the gym.');
-  await say('Guy 1', 'Smooth. Very smooth.');
+  await C("She's going home first We're going to the gym.");
+  await F('Bro. After the exam. With a girl. To the gym.');
+  await say('Guy 1', 'Chat is this rizz??');
   mood('cheese', 'shock');
   await C("It's just a gym trip!! We're friends!!");
   await F('Sure, bro. Sure.');
-  await N("Cheesecake's ears turn bright red...");
+  await N("Cheesecake brain empty...");
   await fadeOut();
   goto('gym');
 };
@@ -1136,7 +1136,7 @@ scenes.gym = async () => {
   addActor('cheese', { ...GYMC, mood: 'smile' }, { x: 62, w: 9 });
   await wait(800);
 
-  await N('📍 The campus gym. Geli is about to try her very first dumbbell shoulder press.');
+  await N('📍 The campus gym. Geli is about to try some bench press');
   mood('geli', 'happy');
   await G("Okay, watch me! I'm gonna lift these!");
   actors.geli.el.insertAdjacentHTML('beforeend', bellHTML);
@@ -1151,7 +1151,7 @@ scenes.gym = async () => {
     const b = $('.bell'); b.style.transition = 'transform .5s ease-in'; b.style.transform = 'translateY(8em)';
     const inner = actors.geli.el.querySelector('.inner'); inner.style.animation = 'none'; inner.style.transform = 'scaleY(.5)';
     await wait(1400);
-    await gameOver({ text: 'Geli got crushed by the weights.', effect: 'crush' });
+    await gameOver({ text: 'Geli got crushed by the weights. GG', effect: 'crush' });
   }
 
   $('.bell').remove();
@@ -1162,11 +1162,11 @@ scenes.gym = async () => {
   await N('A few sets later, Geli stops in front of the big mirror...');
   addActor('ref', { ...GYMG, mood: 'happy' }, { x: 15, y: 44, w: 6 });
   actors.ref.el.classList.add('refl');
-  pop('geli', '💪'); pop('ref', '✨');
-  await G("Ooh, look at that! Are those... shoulder muscles?! I'm getting JACKED!");
+  pop('geli', '💪💪'); pop('ref', '✨');
+  await G("Ooh, look at that! Are those... muscles?! I'm getting JACKED!");
   await N('Geli flexes in the mirror. Cheesecake is right beside her.');
 
-  const m = await choose('What does Cheesecake do?', ['Compliment her muscles 💪', 'Touch her muscle ✋', 'Touch her chest ✋']);
+  const m = await choose('What does Cheesecake do?', ['Compliment her muscles 💪', 'Touch her muscle ✋', 'Touch double geli ✋']);
   if (m === 2) {
     mood('geli', 'shock'); mood('cheese', 'shock');
     await G('...EXCUSE ME?!');
@@ -1216,7 +1216,7 @@ scenes.dorm = async () => {
   mood('cheese', 'shock');
   await C('Geli... what IS that?!');
   mood('cheese', 'smile');
-  await G('My famous purple soup! Guess what I put in it. Add the right ingredients!');
+  await G('My infamous purple concoction! Guess what I put in it. Add the right ingredients!');
 
   const got = [];
   for (let r = 0; r < 4; r++) {
@@ -1274,16 +1274,15 @@ scenes.balcony = async () => {
 
   await N("📍 Geli's balcony. The ocean glitters under a sky full of stars.");
   await N('Across from the balcony stands a tall apartment building, its windows glowing.');
-  await G('Hey Cheesecake. Do you think the people in that building are shirtless right now?');
+  await G('Hey Cheesecake. Do you think those people in that building are shirtless right now?');
   mood('cheese', 'shock'); pop('cheese', '👀');
-  await C('...Why are you asking me that?!');
-  await G('Science! It is late, it is warm, and somebody over there is 100% shirtless.');
+  await C('...uhhhh maybe?! Why you say that');
+  await G('Think about it, it is a friday night, there is two guys and a girl, somebody over there is 100% shirtless.');
   mood('cheese', 'smile');
-  await C('Okay. Third floor, second window. Shirtless. I am calling it.');
+  await C('Wait wht are they doing holy moly!');
   mood('geli', 'happy'); pop('geli', '😂');
-  await G('Nope! That guy is wearing a turtleneck. You owe me!');
-  await C('A TURTLENECK?! In this weather?!');
-  await G('A very confident turtleneck.');
+  await G('Idk probably getting real freaky!');
+  await C('Whaaaa....?!');
 
   mood('geli', 'shy'); mood('cheese', 'happy');
   mind(true, 'what do I do?!', ['should I ask him?', 'boyfriend??', 'now or later?', "what's a good spot", 'hmm 💗', 'I like him', 'what do I do', '💗💗', 'ask him out??', 'help']);
@@ -1312,7 +1311,7 @@ scenes.kitchen = async () => {
   mood('cheese', 'shock');
   await C("Whaaaa? Are you sureee?? ...But I'll take a shot!");
 
-  const c = await choose('What does Cheesecake do?', ['Take one shot 🥃', 'Drink the whole bottle 🍾', 'Screw the shots, I wanna suck on ur boobies 😏']);
+  const c = await choose('What does Cheesecake do?', ['Take one shot 🥃', 'Drink the whole bottle 🍾', 'Screw the shots, I wanna suck on ur boobies heheh 😏']);
   if (c === 1) {
     mood('cheese', 'happy');
     await N('Cheesecake grabs the bottle and chugs the WHOLE thing...');
@@ -1333,7 +1332,7 @@ scenes.kitchen = async () => {
   mood('geli', 'happy');
   await G('Hey, wanna go to the rose garden with me? The stars are so pretty and bright over there!');
   mood('cheese', 'happy');
-  await C('Sure! Let me grab my jacket.');
+  await C("Sure! Let's go.");
   await fadeOut();
   goto('street');
 };
